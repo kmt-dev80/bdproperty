@@ -1,5 +1,6 @@
 import React, { useState} from 'react';
 import { Link } from 'react-router-dom';
+import Weblayout from '../layout/Weblayout';
 
 function Properties() {
   // State for filters
@@ -195,7 +196,7 @@ function Properties() {
   };
 
   return (
-    <>
+    <Weblayout>
     {/* <!-- Property Listing Header --> */}
     <section className="property-listing-header bg-dark text-white py-5">
         <div className="container py-5">
@@ -375,7 +376,7 @@ function Properties() {
           </nav>
         </div>
       </section>
-    </>
+    </Weblayout>
   );
 }
 

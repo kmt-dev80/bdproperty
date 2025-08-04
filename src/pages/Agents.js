@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Weblayout from '../layout/Weblayout';
 
 function Agents() {
   const agents = [
@@ -72,7 +73,7 @@ function Agents() {
   };
 
   return (
-    <>    
+    <Weblayout>    
       {/* Hero Section */}
       <section className="agents-hero py-5 bg-dark text-white">
         <div className="container py-5">
@@ -182,7 +183,7 @@ function Agents() {
           </div>
         </div>
       </section>
-    </>
+    </Weblayout>
   );
 }
 

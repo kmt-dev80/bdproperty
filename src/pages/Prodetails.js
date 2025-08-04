@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import Weblayout from '../layout/Weblayout';
 
 function PropertyDetails() {
   const { id } = useParams();
@@ -132,7 +133,7 @@ function PropertyDetails() {
   if (!property) return <div>Property not found</div>;
 
   return (
-    <>
+    <Weblayout>
       
       {/* Property Header */}
       <section className="property-header bg-light py-5">
@@ -585,7 +586,7 @@ function PropertyDetails() {
           </div>
         </div>
       </div>
-    </>
+    </Weblayout>
   );
 }
 

@@ -1,6 +1,7 @@
 import React, {useState } from 'react';
 import { Link} from 'react-router-dom';
 import { Button } from 'react-bootstrap';
+import Weblayout from '../layout/Weblayout';
 import { useModal } from '../context/ModalContext';
 import TestimonialSlider from '../components/TestimonialSlider';
 
@@ -194,7 +195,7 @@ function Home() {
     return true;
   });
   return (
-    <>
+    <Weblayout>
     {/* <!-- Image Slider --> */}
     <div id="propertyCarousel" className="carousel slide carousel-fade" data-bs-ride="carousel">
         <div className="carousel-indicators">
@@ -729,7 +730,7 @@ function Home() {
         </div>
     </section>
       
-    </>
+    </Weblayout>
   );
 }
 

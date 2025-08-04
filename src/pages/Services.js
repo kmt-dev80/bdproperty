@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import TestimonialSlider from '../components/TestimonialSlider';
+import Weblayout from '../layout/Weblayout';
 
 function Services() {
   const services = [
@@ -79,7 +80,7 @@ function Services() {
   ];
 
   return (
-    <>
+    <Weblayout>
       
       {/* Hero Section */}
       <section className="services-hero py-5 bg-dark text-white">
@@ -174,7 +175,7 @@ function Services() {
 
       {/* Testimonials */}
       <TestimonialSlider />
-    </>
+    </Weblayout>
   );
 }
 
