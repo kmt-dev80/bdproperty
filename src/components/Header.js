@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Navbar, Nav, Container, Button, Modal, Form, Alert } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, Modal, Form, Alert, NavDropdown } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
+import axios from 'axios';
 
 function Header() {
   const { 
@@ -10,14 +11,18 @@ function Header() {
     showRegisterModal, 
     setShowRegisterModal
   } = useModal();
-
+  
+  // Authentication state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  
   // Form states
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
-
+  
   const [registerForm, setRegisterForm] = useState({
     name: '',
     email: '',
@@ -26,12 +31,41 @@ function Header() {
     userType: '',
     terms: false
   });
-
+  
   // Loading and error states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
+  
+  // Check authentication status on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        // Parse user data only if it's not null or undefined
+        const parsedUser = JSON.parse(userData);
+        setIsLoggedIn(true);
+        setUser(parsedUser);
+      } catch (e) {
+        console.error("Error parsing user data:", e);
+        // Clear invalid data from localStorage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+  
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUser(null);
+    setSuccess('You have been successfully logged out');
+  };
+  
   // Handle form changes
   const handleLoginChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -40,7 +74,7 @@ function Header() {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-
+  
   const handleRegisterChange = (e) => {
     const { name, value, type, checked } = e.target;
     setRegisterForm(prev => ({
@@ -48,54 +82,74 @@ function Header() {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-
-  // Handle form submissions
+  
+  // Handle login submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
     
     try {
-      // API call to login endpoint
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: loginForm.email,
-          password: loginForm.password
-        }),
+      const response = await axios.post('http://localhost/api/auth/login.php', {
+        email: loginForm.email,
+        password: loginForm.password
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      
+      // Log the response to debug
+      //console.log('Login response:', response.data);
+      
+      // Check the response structure based on your PHP API
+      if (response.data && response.data.success === true) {
+        // Save token and user data to localStorage
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Update authentication state
+        setIsLoggedIn(true);
+        setUser(response.data.user);
+        
+        // Close modal and show success
+        setShowLoginModal(false);
+        setSuccess('Login successful!');
+        
+        // Reset form
+        setLoginForm({
+          email: '',
+          password: '',
+          rememberMe: false
+        });
+      } else {
+        // Handle error response
+        setError(response.data?.message || 'Login failed');
       }
-
-      // Save token to localStorage
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Close modal and redirect
-      setShowLoginModal(false);
-      setSuccess('Login successful!');
-      
-      // Reset form
-      setLoginForm({
-        email: '',
-        password: '',
-        rememberMe: false
-      });
-      
     } catch (err) {
-      setError(err.message || 'An error occurred during login');
+      //console.error('Login error:', err);
+      
+      // Axios error handling
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        //console.error('Error response:', err.response.data);
+        
+        // Check if the error response has the expected structure
+        if (err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('Login failed');
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError(err.message || 'An error occurred during login');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
+  // Handle registration submission
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -107,52 +161,67 @@ function Header() {
       setIsSubmitting(false);
       return;
     }
-
+    
     try {
-      // API call to register endpoint
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: registerForm.name,
-          email: registerForm.email,
-          password: registerForm.password,
-          userType: registerForm.userType
-        }),
+      const response = await axios.post('http://localhost/api/auth/register.php', {
+        name: registerForm.name,
+        email: registerForm.email,
+        password: registerForm.password,
+        userType: registerForm.userType
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+      
+      // Log the response to debug
+      //console.log('Register response:', response.data);
+      
+      // Check the response structure based on your PHP API
+      if (response.data && response.data.success === true) {
+        // Close modal and show success
+        setShowRegisterModal(false);
+        setSuccess('Registration successful! Please login.');
+        
+        // Reset form
+        setRegisterForm({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          userType: 'tenant',
+          terms: false
+        });
+        
+        // Open login modal after a short delay
+        setTimeout(() => setShowLoginModal(true), 500);
+      } else {
+        // Handle error response
+        setError(response.data?.message || 'Registration failed');
       }
-
-      // Close modal and show success
-      setShowRegisterModal(false);
-      setSuccess('Registration successful! Please login.');
-      
-      // Reset form
-      setRegisterForm({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        userType: 'tenant',
-        terms: false
-      });
-      
-      // Open login modal
-      setTimeout(() => setShowLoginModal(true), 500);
-      
     } catch (err) {
-      setError(err.message || 'An error occurred during registration');
+      //console.error('Registration error:', err);
+      
+      // Axios error handling
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        //console.error('Error response:', err.response.data);
+        
+        // Check if the error response has the expected structure
+        if (err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('Registration failed');
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError(err.message || 'An error occurred during registration');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <>
       {/* Navigation */}
@@ -171,14 +240,43 @@ function Header() {
               <Nav.Link as={Link} to="/agents">Agents</Nav.Link>
               <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
             </Nav>
-            <div className="ms-lg-3 mt-3 mt-lg-0 d-flex gap-2">
-              <Button variant="warning" onClick={() => setShowLoginModal(true)}>Login</Button>
-              <Button variant="outline-light" onClick={() => setShowRegisterModal(true)}>Register</Button>
+            <div className="ms-lg-3 mt-3 mt-lg-0 d-flex gap-2 text-light">
+              {isLoggedIn ? (
+                <NavDropdown 
+                  title={
+                    <>
+                      <i className="fas fa-user-circle me-1"></i>
+                      {user?.name || user?.email || 'Profile'}
+                    </>
+                  } 
+                  id="basic-nav-dropdown"
+                  align="end"
+                >
+                  <NavDropdown.Item as={Link} to="/profile">
+                    <i className="fas fa-user me-2"></i> My Profile
+                  </NavDropdown.Item>
+                  <NavDropdown.Item as={Link} to="/dashboard">
+                    <i className="fas fa-tachometer-alt me-2"></i> Dashboard
+                  </NavDropdown.Item>
+                  <NavDropdown.Item as={Link} to="/settings">
+                    <i className="fas fa-cog me-2"></i> Settings
+                  </NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item onClick={handleLogout}>
+                    <i className="fas fa-sign-out-alt me-2"></i> Logout
+                  </NavDropdown.Item>
+                </NavDropdown>
+              ) : (
+                <>
+                  <Button variant="warning" onClick={() => setShowLoginModal(true)}>Login</Button>
+                  <Button variant="outline-light" onClick={() => setShowRegisterModal(true)}>Register</Button>
+                </>
+              )}
             </div>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-
+      
       {/* Success Alert */}
       {success && (
         <Alert variant="success" className="position-fixed top-0 start-50 translate-middle-x mt-5" style={{ zIndex: 9999 }}>
@@ -186,12 +284,18 @@ function Header() {
           <Button variant="close" size="sm" onClick={() => setSuccess('')} />
         </Alert>
       )}
-
+      
       {/* Login Modal */}
-      <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)} centered size="sm">
+      <Modal show={showLoginModal} onHide={() => {
+        setShowLoginModal(false);
+        setError('');
+      }} centered size="sm">
         <Modal.Header className="bg-gradient-primary text-white border-0 rounded-top">
           <Modal.Title id="loginModalLabel" className="fw-bold">Welcome Back!</Modal.Title>
-          <Button variant="close" aria-label="Close" onClick={() => setShowLoginModal(false)} className="btn-close-white" />
+          <Button variant="close" aria-label="Close" onClick={() => {
+            setShowLoginModal(false);
+            setError('');
+          }} className="btn-close-white" />
         </Modal.Header>
         <Modal.Body className="py-4">
           {error && <Alert variant="danger">{error}</Alert>}
@@ -257,12 +361,18 @@ function Header() {
           </Form>
         </Modal.Body>
       </Modal>
-
+      
       {/* Register Modal */}
-      <Modal show={showRegisterModal} onHide={() => setShowRegisterModal(false)} centered>
+      <Modal show={showRegisterModal} onHide={() => {
+        setShowRegisterModal(false);
+        setError('');
+      }} centered>
         <Modal.Header className="bg-gradient-primary text-white border-0 rounded-top">
           <Modal.Title id="registerModalLabel" className="fw-bold">Join Us Today</Modal.Title>
-          <Button variant="close" aria-label="Close" onClick={() => setShowRegisterModal(false)} className="btn-close-white" />
+          <Button variant="close" aria-label="Close" onClick={() => {
+            setShowRegisterModal(false);
+            setError('');
+          }} className="btn-close-white" />
         </Modal.Header>
         <Modal.Body className="py-4">
           {error && <Alert variant="danger">{error}</Alert>}

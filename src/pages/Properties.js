@@ -1,6 +1,7 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Weblayout from '../layout/Weblayout';
+import axios from 'axios';
 
 function Properties() {
   // State for filters
@@ -10,204 +11,127 @@ function Properties() {
   const [sortOption, setSortOption] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const propertiesPerPage = 12;
-
-  // Sample property data (replace with API call in a real application)
-  const properties = [
-    {
-      id: 1,
-      type: 'apartment',
-      title: 'Modern Apartment in Downtown',
-      price: 1200,
-      bedrooms: 3,
-      bathrooms: 2,
-      address: '123 Main St, New York, NY',
-      location: 'New York',
-      image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: true,
-      description: 'Beautiful modern apartment with stunning city views. Recently renovated with high-end finishes.',
-      dateAdded: new Date('2025-07-01'),
-      popularity: 90,
-    },
-    {
-      id: 2,
-      type: 'house',
-      title: 'Spacious Family House',
-      price: 2500,
-      bedrooms: 4,
-      bathrooms: 3,
-      address: '456 Oak Ave, Brooklyn, NY',
-      location: 'New York',
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: false,
-      description: 'Lovely family home with large backyard and modern kitchen. Perfect for family gatherings.',
-      dateAdded: new Date('2025-06-15'),
-      popularity: 85,
-    },
-    {
-      id: 3,
-      type: 'office',
-      title: 'Luxury Office Space',
-      price: 3200,
-      bedrooms: 2,
-      bathrooms: 2,
-      address: '789 Business Blvd, Manhattan, NY',
-      location: 'New York',
-      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: true,
-      description: 'Premium office space in the heart of the business district. Includes conference rooms and reception area.',
-      dateAdded: new Date('2025-07-20'),
-      popularity: 95,
-    },
-    {
-      id: 4,
-      type: 'villa',
-      title: 'Luxury Villa by the Beach',
-      price: 5000,
-      bedrooms: 5,
-      bathrooms: 4,
-      address: '101 Ocean Dr, Miami, FL',
-      location: 'Miami',
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: false,
-      description: 'Stunning villa with ocean views and private pool.',
-      dateAdded: new Date('2025-05-01'),
-      popularity: 80,
-    },
-    {
-      id: 5,
-      type: 'house',
-      title: 'Luxury Villa with Pool',
-      price: 4500,
-      bedrooms: 3,
-      bathrooms: 3,
-      address: '200 Ocean Drive, Miami, FL',
-      location: 'Miami',
-      description: 'Stunning contemporary villa with private pool, ocean views, and premium amenities.',
-      image: 'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: true,
-      dateAdded: new Date('2025-04-05'),
-      popularity: 70,
-    },
-  {
-      id: 6,
-      type: 'apartment',
-      title: 'Penthouse with Panoramic Views',
-      price: 3800,
-      bedrooms: 3,
-      bathrooms: 3,
-      address: '500 Skyline Blvd, Chicago, IL',
-      location: 'Chicago',
-      description: 'Luxurious penthouse offering breathtaking city views, high ceilings, and designer finishes.',
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: true,
-      dateAdded: new Date('2025-06-07'),
-      popularity: 60,
-    },
-    {
-      id: 7,
-      type: 'office',
-      title: 'Creative Co-Working Space',
-      price: 1800,
-      bedrooms: 2,
-      bathrooms: 2,
-      address: '300 Innovation Way, Austin, TX',
-      location: 'Austin',
-      description: 'Modern co-working space with flexible workstations, meeting rooms, and lounge areas.',
-      image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: false,
-      dateAdded: new Date('2025-07-05'),
-      popularity: 85,
-    },
-    {
-      id: 8,
-      type: 'house',
-      title: 'Charming Cottage',
-      price: 1600,
-      bedrooms: 2,
-      bathrooms: 1,
-      address: '700 Garden St, Portland, OR',
-      location: 'Portland',
-      description: 'Quaint cottage with beautiful garden, vintage charm, and modern comforts.',
-      image: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: false,
-      dateAdded: new Date('2025-05-09'),
-      popularity: 50,
-    },
-    {
-      id: 9,
-      type: 'apartment',
-      title: 'Luxury Waterfront Apartment',
-      price: 2800,
-      bedrooms: 2,
-      bathrooms: 2,
-      address: '800 Bayview Dr, San Francisco, CA',
-      location: 'San Francisco',
-      description: 'Elegant apartment with waterfront views, gourmet kitchen, and access to premium amenities.',
-      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      featured: true,
-      dateAdded: new Date('2025-06-02'),
-      popularity: 87,
-    }
-  ];
-
-  // Filter properties
-  const filteredProperties = properties.filter((property) => {
-    const matchesType = filterType === 'all' || property.type === filterType;
-    const matchesLocation = filterLocation === 'all' || property.location === filterLocation;
-    const matchesPrice =
-      filterPrice === 'all' ||
-      (filterPrice === '0-1000' && property.price <= 1000) ||
-      (filterPrice === '1000-2500' && property.price > 1000 && property.price <= 2500) ||
-      (filterPrice === '2500-5000' && property.price > 2500 && property.price <= 5000) ||
-      (filterPrice === '5000+' && property.price > 5000);
-    return matchesType && matchesLocation && matchesPrice;
-  });
-
-  // Sort properties
-  const sortedProperties = [...filteredProperties].sort((a, b) => {
-    if (sortOption === 'newest') {
-      return b.dateAdded - a.dateAdded;
-    } else if (sortOption === 'price-low-high') {
-      return a.price - b.price;
-    } else if (sortOption === 'price-high-low') {
-      return b.price - a.price;
-    } else if (sortOption === 'popular') {
-      return b.popularity - a.popularity;
-    }
-    return 0;
-  });
-
+  
+  // State for properties data
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Fetch properties from backend
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        setLoading(true);
+        
+        // Build query parameters based on current filters
+        const params = new URLSearchParams();
+        if (filterType !== 'all') params.append('type', filterType);
+        if (filterLocation !== 'all') params.append('location', filterLocation);
+        
+        // Add price range parameters
+        if (filterPrice !== 'all') {
+          switch (filterPrice) {
+            case '0-1000':
+              params.append('minPrice', 0);
+              params.append('maxPrice', 1000);
+              break;
+            case '1000-2500':
+              params.append('minPrice', 1000);
+              params.append('maxPrice', 2500);
+              break;
+            case '2500-5000':
+              params.append('minPrice', 2500);
+              params.append('maxPrice', 5000);
+              break;
+            case '5000+':
+              params.append('minPrice', 5000);
+              break;
+          }
+        }
+        
+        // Add sort parameter
+        params.append('sort', sortOption);
+        
+        const response = await axios.get(`http://localhost/api/properties/get_property.php?${params.toString()}`);
+        
+        if (response.data.success) {
+          
+          const transformedProperties = response.data.properties.map(property => {
+            
+            return {
+              id: property.id,
+              type: property.type,
+              title: property.title,
+              price: parseFloat(property.price),
+              bedrooms: parseInt(property.bedrooms),
+              bathrooms: parseInt(property.bathrooms),
+              address: property.address,
+              location: property.location,
+              image: property.primary_image || 
+                     (property.images && property.images.length > 0 ? property.images[0] : 
+                     'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+              featured: property.featured,
+              description: property.description,
+              images: property.images || [],
+              avg_rating: property.avg_rating,
+              review_count: property.review_count
+            };
+          });
+          
+          setProperties(transformedProperties);
+        } else {
+          setError(response.data.message || 'Failed to fetch properties');
+        }
+      } catch (err) {
+        setError(err.message || 'An error occurred while fetching properties');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProperties();
+  }, [filterType, filterLocation, filterPrice, sortOption]);
+  
   // Pagination logic
-  const totalPages = Math.ceil(sortedProperties.length / propertiesPerPage);
+  const totalPages = Math.ceil(properties.length / propertiesPerPage);
   const startIndex = (currentPage - 1) * propertiesPerPage;
-  const paginatedProperties = sortedProperties.slice(startIndex, startIndex + propertiesPerPage);
-
+  const paginatedProperties = properties.slice(startIndex, startIndex + propertiesPerPage);
+  
   // Handle filter submission
   const handleFilter = (e) => {
     e.preventDefault();
     setCurrentPage(1); // Reset to first page on filter change
   };
-
+  
   // Handle pagination
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
-
+  
+  // Get unique locations for filter dropdown
+  const locations = [...new Set(properties.map(property => property.location))];
+  
+  // Function to handle image loading errors
+  const handleImageError = (e, propertyId) => {
+    e.target.src = 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  };
+  
   return (
     <Weblayout>
-    {/* <!-- Property Listing Header --> */}
-    <section className="property-listing-header bg-dark text-white py-5">
+      {/* <!-- Property Listing Header --> */}
+      <section className="property-listing-header bg-dark text-white py-5">
         <div className="container py-5">
-            <div className="row">
-                <div className="col-lg-8 mx-auto text-center">
-                    <h1 className="display-4 fw-bold mb-3">Browse Our Properties</h1>
-                    <p className="lead mb-4">Discover your perfect home from our premium collection</p>
-                </div>
+          <div className="row">
+            <div className="col-lg-8 mx-auto text-center">
+              <h1 className="display-4 fw-bold mb-3">Browse Our Properties</h1>
+              <p className="lead mb-4">Discover your perfect home from our premium collection</p>
             </div>
+          </div>
         </div>
-    </section>
+      </section>
+      
       {/* Property Filter Section */}
       <section className="property-filter bg-light py-4">
         <div className="container">
@@ -226,6 +150,8 @@ function Properties() {
                 <option value="house">House</option>
                 <option value="villa">Villa</option>
                 <option value="office">Office</option>
+                <option value="store">Store</option>
+                <option value="land">Land</option>
               </select>
             </div>
             <div className="col-md-3">
@@ -238,10 +164,9 @@ function Properties() {
                 }}
               >
                 <option value="all">Location</option>
-                <option value="New York">New York</option>
-                <option value="Los Angeles">Los Angeles</option>
-                <option value="Chicago">Chicago</option>
-                <option value="Miami">Miami</option>
+                {locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
               </select>
             </div>
             <div className="col-md-3">
@@ -268,13 +193,15 @@ function Properties() {
           </div>
         </div>
       </section>
-
+      
       {/* Property Grid Section */}
       <section className="property-grid py-5">
         <div className="container">
           <div className="row mb-4">
             <div className="col-md-6">
-              <h3 className="fw-bold">Showing {filteredProperties.length} Properties</h3>
+              <h3 className="fw-bold">
+                {loading ? 'Loading properties...' : `Showing ${properties.length} Properties`}
+              </h3>
             </div>
             <div className="col-md-6 text-md-end">
               <select
@@ -292,88 +219,147 @@ function Properties() {
               </select>
             </div>
           </div>
-
-          <div className="row g-4">
-            {paginatedProperties.map((property, index) => (
-              <div
-                key={property.id}
-                className={`col-md-6 col-lg-4 animate__animated animate__fadeInUp animate__delay-${index % 3}s`}
+          
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-3">Loading properties...</p>
+            </div>
+          )}
+          
+          {/* Error State */}
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              <h4 className="alert-heading">Error Loading Properties</h4>
+              <p>{error}</p>
+              <button 
+                className="btn btn-outline-danger"
+                onClick={() => window.location.reload()}
               >
-                <div className="card property-card h-100 border-0 shadow overflow-hidden">
-                  <div className="position-relative">
-                    <img src={property.image} className="card-img-top" alt={property.title} />
-                    <div
-                      className={`badge bg-${property.featured ? 'danger' : 'success'} position-absolute top-0 start-0 m-3`}
-                    >
-                      {property.featured ? 'Featured' : 'New'}
-                    </div>
-                    <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient">
-                      <div className="d-flex justify-content-between text-white">
-                        <span className="fw-bold">${property.price.toLocaleString()}/mo</span>
-                        <div>
-                          <span className="me-2">
-                            <i className="fas fa-bed me-1"></i> {property.bedrooms}
-                          </span>
-                          <span>
-                            <i className="fas fa-bath me-1"></i> {property.bathrooms}
-                          </span>
+                Try Again
+              </button>
+            </div>
+          )}
+          
+          {/* No Properties Found */}
+          {!loading && !error && properties.length === 0 && (
+            <div className="text-center py-5">
+              <i className="fas fa-home fa-3x text-muted mb-3"></i>
+              <h3>No Properties Found</h3>
+              <p className="text-muted">Try adjusting your filters to see more results.</p>
+            </div>
+          )}
+          
+          {/* Properties Grid */}
+          {!loading && !error && properties.length > 0 && (
+            <div className="row g-4">
+              {paginatedProperties.map((property, index) => (
+                <div
+                  key={property.id}
+                  className={`col-md-6 col-lg-4 animate__animated animate__fadeInUp animate__delay-${index % 3}s`}
+                >
+                  <div className="card property-card h-100 border-0 shadow overflow-hidden">
+                    <div className="position-relative">
+                      <img 
+                        src={property.image} 
+                        className="card-img-top" 
+                        alt={property.title}
+                        onError={(e) => handleImageError(e, property.id)}
+                        style={{height: '200px', objectFit: 'cover'}}
+                      />
+                      <div
+                        className={`badge bg-${property.featured ? 'danger' : 'success'} position-absolute top-0 start-0 m-3`}
+                      >
+                        {property.featured ? 'Featured' : 'New'}
+                      </div>
+                      <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient">
+                        <div className="d-flex justify-content-between text-white">
+                          <span className="fw-bold">${property.price.toLocaleString()}/mo</span>
+                          <div>
+                            <span className="me-2">
+                              <i className="fas fa-bed me-1"></i> {property.bedrooms}
+                            </span>
+                            <span>
+                              <i className="fas fa-bath me-1"></i> {property.bathrooms}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="card-body">
-                    <h5 className="card-title">{property.title}</h5>
-                    <p className="card-text text-muted mb-3">
-                      <i className="fas fa-map-marker-alt text-danger me-1"></i> {property.address}
-                    </p>
-                    <p className="card-text">{property.description}</p>
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                      <span className="badge bg-dark">
-                        {property.type.charAt(0).toUpperCase() + property.type.slice(1)}
-                      </span>
-                      <Link 
-                        to="/prodetails"
-                        className="btn btn-sm btn-warning"
-                      >
-                        View Details <i className="fas fa-arrow-right ms-1"></i>
-                      </Link>
+                    <div className="card-body">
+                      <h5 className="card-title">{property.title}</h5>
+                      <p className="card-text text-muted mb-3">
+                        <i className="fas fa-map-marker-alt text-danger me-1"></i> {property.address}
+                      </p>
+                      <p className="card-text">{property.description}</p>
+                      
+                      {/* Display rating if available */}
+                      {property.avg_rating > 0 && (
+                        <div className="mb-2">
+                          <div className="d-flex align-items-center">
+                            <div className="text-warning me-2">
+                              {[...Array(5)].map((_, i) => (
+                                <i key={i} className={`fas fa-star${i < Math.floor(property.avg_rating) ? '' : (i < property.avg_rating ? '-half-alt' : '-o')}`}></i>
+                              ))}
+                            </div>
+                            <span className="text-muted small">({property.review_count} reviews)</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="d-flex justify-content-between align-items-center mt-3">
+                        <span className="badge bg-dark">
+                          {property.type.charAt(0).toUpperCase() + property.type.slice(1)}
+                        </span>
+                        <Link 
+                          to={`/property/${property.id}`}
+                          className="btn btn-sm btn-warning"
+                        >
+                          View Details <i className="fas fa-arrow-right ms-1"></i>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
+              ))}
+            </div>
+          )}
+          
           {/* Pagination */}
-          <nav className="mt-5">
-            <ul className="pagination justify-content-center">
-              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-              </li>
-              {[...Array(totalPages)].map((_, index) => (
-                <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                  <button className="page-link" onClick={() => handlePageChange(index + 1)}>
-                    {index + 1}
+          {!loading && !error && properties.length > 0 && (
+            <nav className="mt-5">
+              <ul className="pagination justify-content-center">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
                   </button>
                 </li>
-              ))}
-              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </li>
-            </ul>
-          </nav>
+                {[...Array(totalPages)].map((_, index) => (
+                  <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                    <button className="page-link" onClick={() => handlePageChange(index + 1)}>
+                      {index + 1}
+                    </button>
+                  </li>
+                ))}
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
       </section>
     </Weblayout>
