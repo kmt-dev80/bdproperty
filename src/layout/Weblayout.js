@@ -18,4 +18,4 @@ function Weblayout({children}) {
   )
 }
 
-export default Weblayout
+export default Weblayout;

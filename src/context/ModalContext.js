@@ -6,6 +6,17 @@ export const ModalProvider = ({ children }) => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showListPropertyModal, setShowListPropertyModal] = useState(false);
+  const [editingProperty, setEditingProperty] = useState(null);
+
+   const openListPropertyModal = (property = null) => {
+    setEditingProperty(property);
+    setShowListPropertyModal(true);
+  };
+  
+  const closeListPropertyModal = () => {
+    setEditingProperty(null);
+    setShowListPropertyModal(false);
+  };
   
   return (
     <ModalContext.Provider value={{ 
@@ -14,7 +25,11 @@ export const ModalProvider = ({ children }) => {
       showRegisterModal, 
       setShowRegisterModal,
       showListPropertyModal, 
-      setShowListPropertyModal
+      setShowListPropertyModal,
+      editingProperty,
+      setEditingProperty,
+      openListPropertyModal,
+      closeListPropertyModal
     }}>
       {children}
     </ModalContext.Provider>

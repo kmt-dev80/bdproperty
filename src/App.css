@@ -48,3 +48,49 @@
 .floating-button:active {
   transform: scale(0.95);
 }
+
+
+.reviews-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.reviews-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reviews-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.reviews-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.reviews-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.progress {
+  background-color: #e9ecef;
+  border-radius: 10px;
+}
+
+.progress-bar {
+  border-radius: 10px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+ Star Rating Styles 
+.text-warning {
+  color: #ffc107 !important;
+}
+
+.card.border-primary {
+  border-width: 2px;
+}
