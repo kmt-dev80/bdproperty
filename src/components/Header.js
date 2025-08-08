@@ -1,3 +1,4 @@
+// src/components/Header.js
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Modal, Form, Alert, NavDropdown } from 'react-bootstrap';
@@ -26,9 +27,10 @@ function Header() {
   const [registerForm, setRegisterForm] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
-    userType: '',
+    userType: 'tenant', // Default to tenant
     terms: false
   });
   
@@ -90,13 +92,10 @@ function Header() {
     setError('');
     
     try {
-      const response = await axios.post('http://localhost/api/auth/login.php', {
+      const response = await axios.post('http://localhost/api/users/login.php', {
         email: loginForm.email,
         password: loginForm.password
       });
-      
-      // Log the response to debug
-      //console.log('Login response:', response.data);
       
       // Check the response structure based on your PHP API
       if (response.data && response.data.success === true) {
@@ -118,19 +117,18 @@ function Header() {
           password: '',
           rememberMe: false
         });
+        
+        // Redirect based on user type
+        if (response.data.user.user_type === 'admin' || response.data.user.user_type === 'agent') {
+          window.location.href = '/admin/dashboard';
+        }
       } else {
         // Handle error response
         setError(response.data?.message || 'Login failed');
       }
     } catch (err) {
-      //console.error('Login error:', err);
-      
       // Axios error handling
       if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        //console.error('Error response:', err.response.data);
-        
         // Check if the error response has the expected structure
         if (err.response.data && err.response.data.message) {
           setError(err.response.data.message);
@@ -163,47 +161,42 @@ function Header() {
     }
     
     try {
-      const response = await axios.post('http://localhost/api/auth/register.php', {
+      const response = await axios.post('http://localhost/api/users/register.php', {
         name: registerForm.name,
         email: registerForm.email,
+        phone: registerForm.phone,
         password: registerForm.password,
-        userType: registerForm.userType
+        user_type: registerForm.userType
       });
-      
-      // Log the response to debug
-      //console.log('Register response:', response.data);
       
       // Check the response structure based on your PHP API
       if (response.data && response.data.success === true) {
         // Close modal and show success
         setShowRegisterModal(false);
-        setSuccess('Registration successful! Please login.');
+        setSuccess('Registration successful! Please login with your new account.');
         
         // Reset form
         setRegisterForm({
           name: '',
           email: '',
+          phone: '',
           password: '',
           confirmPassword: '',
-          userType: 'tenant',
+          userType: 'tenant', // Default to tenant
           terms: false
         });
         
-        // Open login modal after a short delay
-        setTimeout(() => setShowLoginModal(true), 500);
+        // Open login modal after successful registration
+        setTimeout(() => {
+          setShowLoginModal(true);
+        }, 1500);
       } else {
         // Handle error response
         setError(response.data?.message || 'Registration failed');
       }
     } catch (err) {
-      //console.error('Registration error:', err);
-      
       // Axios error handling
       if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        //console.error('Error response:', err.response.data);
-        
         // Check if the error response has the expected structure
         if (err.response.data && err.response.data.message) {
           setError(err.response.data.message);
@@ -242,22 +235,37 @@ function Header() {
             </Nav>
             <div className="ms-lg-3 mt-3 mt-lg-0 d-flex gap-2 text-light">
               {isLoggedIn ? (
-                <NavDropdown 
+                 <NavDropdown 
                   title={
-                    <>
-                      <i className="fas fa-user-circle me-1"></i>
-                      {user?.name || user?.email || 'Profile'}
-                    </>
-                  } 
-                  id="basic-nav-dropdown"
-                  align="end"
-                >
+                  <div className="d-flex align-items-center">
+                    {user?.profile_image ? (
+                      <img 
+                        src={`http://localhost/api/${user.profile_image}`} 
+                        alt="Profile" 
+                        className="rounded-circle me-2"
+                        style={{ width: '30px', height: '30px', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div 
+                        className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2"
+                        style={{ width: '30px', height: '30px' }}>
+                        {user?.name ? user.name.charAt(0).toUpperCase() : <i className="fas fa-user" />}
+                      </div>
+                          )}
+                          <span>{user?.name || user?.email || 'Profile'}</span>
+                        </div>
+                      } 
+                      id="basic-nav-dropdown"
+                      align="end"
+                    >
                   <NavDropdown.Item as={Link} to="/profile">
                     <i className="fas fa-user me-2"></i> My Profile
                   </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} to="/dashboard">
-                    <i className="fas fa-tachometer-alt me-2"></i> Dashboard
-                  </NavDropdown.Item>
+                  {(user?.user_type === 'admin' || user?.user_type === 'agent') && (
+                    <NavDropdown.Item as={Link} to="/admin/dashboard">
+                      <i className="fas fa-cog me-2"></i> Admin Panel
+                    </NavDropdown.Item>
+                  )}
                   <NavDropdown.Item as={Link} to="/settings">
                     <i className="fas fa-cog me-2"></i> Settings
                   </NavDropdown.Item>
@@ -399,6 +407,16 @@ function Header() {
                 required 
               />
             </Form.Group>
+            <Form.Group className="mb-3" controlId="registerPhone">
+              <Form.Label className="fw-medium">Phone Number</Form.Label>
+              <Form.Control 
+                type="tel" 
+                name="phone"
+                value={registerForm.phone}
+                onChange={handleRegisterChange}
+                placeholder="(123) 456-7890" 
+              />
+            </Form.Group>
             <Form.Group className="mb-3" controlId="registerPassword">
               <Form.Label className="fw-medium">Password</Form.Label>
               <Form.Control 
@@ -448,11 +466,11 @@ function Header() {
                   inline
                   type="radio" 
                   name="userType"
-                  id="agent"
-                  value="agent"
-                  checked={registerForm.userType === 'agent'}
+                  id="user"
+                  value="user"
+                  checked={registerForm.userType === 'user'}
                   onChange={handleRegisterChange}
-                  label="Agent" 
+                  label="User" 
                 />
               </div>
             </Form.Group>

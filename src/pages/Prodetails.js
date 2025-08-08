@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect} from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
-import Weblayout from '../layout/Weblayout';
 import { useModal } from '../context/ModalContext';
 
 function PropertyDetails() {
@@ -16,13 +15,11 @@ function PropertyDetails() {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
-  const [userReview, setUserReview] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
-  const [debugInfo, setDebugInfo] = useState({});
+  const [currentUserId, setCurrentUserId] = useState(null);
   
   // Add state for modals
   const [showContactModal, setShowContactModal] = useState(false);
@@ -36,10 +33,7 @@ function PropertyDetails() {
     tourDate: 'As soon as possible'
   });
   
-  // Update the renderStars function to handle icon classes properly
   const renderAmenityIcon = (iconClass) => {
-    // If the icon class already has 'fa-', use it directly
-    // Otherwise, add 'fa-' prefix
     const fullIconClass = iconClass.startsWith('fa-') ? iconClass : `fa-${iconClass}`;
     return `fas ${fullIconClass}`;
   };
@@ -61,31 +55,18 @@ function PropertyDetails() {
         const user = JSON.parse(userData);
         setIsLoggedIn(true);
         
-        // Extract user ID from token (format: luxury-homes-token-{id}-{type})
+        // Extract user ID from token
         const tokenParts = token.split('-');
         if (tokenParts.length >= 4 && tokenParts[0] === 'luxury' && tokenParts[1] === 'homes' && tokenParts[2] === 'token') {
           const userId = tokenParts[3];
           setCurrentUserId(userId);
-          console.log("Extracted user ID from token:", userId);
           
           // Get user email from user data
           if (user && user.email) {
             setCurrentUserEmail(user.email.toLowerCase()); // Convert to lowercase for case-insensitive comparison
-            console.log("User email from localStorage:", user.email);
           }
-          
-          // Update debug info
-          setDebugInfo(prev => ({
-            ...prev,
-            token: token,
-            tokenParts: tokenParts,
-            extractedUserId: userId,
-            userData: user,
-            userEmail: user ? user.email : null
-          }));
         }
       } catch (e) {
-        console.error("Error parsing user data:", e);
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
       }
@@ -102,13 +83,8 @@ function PropertyDetails() {
         // Use the correct API endpoint for getting a single property
         const response = await axios.get(`http://localhost/api/properties/get.php?id=${id}`);
         
-        console.log('Full API Response:', response.data); // Debug log
-        
-        // Fixed condition to match actual API response structure
         if (response.data && response.data.success === true) {
-          // The API returns an object with success and data properties
           const propertyData = response.data.data;
-          console.log('Property data:', propertyData); // Debug log
           
           setProperty(propertyData);
           
@@ -117,37 +93,42 @@ function PropertyDetails() {
           setAverageRating(propertyData.avg_rating || 0);
           setTotalReviews(propertyData.total_reviews || 0);
           
-          // Update debug info with property data
-          setDebugInfo(prev => ({
-            ...prev,
-            propertyData: propertyData,
-            propertyOwnerEmail: propertyData.owner_email
-          }));
-          
           // Check if current user is the owner using email comparison
           if (currentUserEmail && propertyData && propertyData.owner_email) {
-            console.log("Current user email:", currentUserEmail);
-            console.log("Property owner email:", propertyData.owner_email);
-            
             // Convert both to lowercase for case-insensitive comparison
             if (currentUserEmail === propertyData.owner_email.toLowerCase()) {
-              console.log("User is the owner (email match)");
               setIsOwner(true);
             } else {
               console.log("User is not the owner");
-              console.log("Email comparison:", currentUserEmail, "===", propertyData.owner_email.toLowerCase(), currentUserEmail === propertyData.owner_email.toLowerCase());
             }
           } else {
             console.log("No user email or property owner email found");
-            console.log("currentUserEmail:", currentUserEmail);
-            console.log("propertyData.owner_email:", propertyData ? propertyData.owner_email : "propertyData is undefined");
+          }
+          
+          // Check if property is saved by current user
+          if (isLoggedIn && currentUserId) {
+            try {
+              const token = localStorage.getItem('authToken');
+              const savedResponse = await axios.get(
+                `http://localhost/api/users/get_saved_properties.php?property_id=${id}`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${token}`
+                  }
+                }
+              );
+              
+              if (savedResponse.data.success) {
+                setSaved(savedResponse.data.is_saved);
+              }
+            } catch (err) {
+              console.error('Error checking if property is saved:', err);
+            }
           }
         } else {
           setError('Failed to fetch property details');
-          console.error('API Error:', response.data);
         }
       } catch (err) {
-        console.error('Error fetching property details:', err);
         setError('Failed to fetch property details. Please try again later.');
       } finally {
         setLoading(false);
@@ -157,104 +138,142 @@ function PropertyDetails() {
     if (id) {
       fetchPropertyDetails();
     }
-  }, [id, currentUserEmail]);
+  }, [id, currentUserEmail, isLoggedIn, currentUserId]);
   
-  // Debug logging for isOwner state
-  useEffect(() => {
-    console.log("isOwner state updated:", isOwner);
-    setDebugInfo(prev => ({
-      ...prev,
-      isOwner: isOwner
-    }));
-  }, [isOwner]);
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
   
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    const handleReviewChange = (e) => {
+      const { name, value } = e.target;
+      setReviewForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
   
-  const handleReviewChange = (e) => {
-    const { name, value } = e.target;
-    setReviewForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const response = await axios.post('http://localhost/api/message/tour-request.php', {
-        propertyId: id,
-        ...formData
-      });
+    const handleSubmit = async (e) => {
+      e.preventDefault();
       
-      if (response.data && response.data.success === true) {
-        alert(`Tour request submitted successfully! We will contact you shortly.\n\nProperty: ${response.data.property_title}\nOwner: ${response.data.owner_name}`);
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          message: '',
-          tourDate: 'As soon as possible'
+      try {
+        const response = await axios.post('http://localhost/api/message/tour-request.php', {
+          propertyId: id,
+          ...formData
         });
-        setShowTourModal(false); // Close the modal after submission
-      } else {
-        alert('Failed to submit tour request: ' + response.data.message);
-      }
-    } catch (err) {
-      console.error('Error submitting tour request:', err);
-      alert('Failed to submit tour request. Please try again.');
-    }
-  };
-  
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!isLoggedIn) {
-      alert('Please log in to submit a review.');
-      return;
-    }
-    
-    try {
-      const response = await axios.post('http://localhost/api/reviews/add.php', {
-        property_id: id,
-        rating: reviewForm.rating,
-        comment: reviewForm.comment
-      });
-      
-      if (response.data && response.data.success === true) {
-        alert('Review submitted successfully!');
-        setReviewForm({
-          rating: 5,
-          comment: ''
-        });
-        setShowReviewForm(false);
         
-        // Refresh reviews
-        const reviewsResponse = await axios.get(`http://localhost/api/reviews/get.php?property_id=${id}`);
-        
-        if (reviewsResponse.data && reviewsResponse.data.success === true) {
-          setReviews(reviewsResponse.data.reviews);
-          setAverageRating(reviewsResponse.data.average_rating);
-          setTotalReviews(reviewsResponse.data.total_reviews);
+        if (response.data && response.data.success === true) {
+          alert(`Tour request submitted successfully! We will contact you shortly.\n\nProperty: ${response.data.property_title}\nOwner: ${response.data.owner_name}`);
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            message: '',
+            tourDate: 'As soon as possible'
+          });
+          setShowTourModal(false); // Close the modal after submission
+        } else {
+          alert('Failed to submit tour request: ' + response.data.message);
         }
-      } else {
-        alert('Failed to submit review: ' + response.data.message);
+      } catch (err) {
+        alert('Failed to submit tour request. Please try again.');
       }
-    } catch (err) {
-      console.error('Error submitting review:', err);
-      alert('Failed to submit review. Please try again.');
-    }
-  };
+    };
   
-  const toggleSave = () => {
-    setSaved(!saved);
-    // In a real app, you would update this in the user's profile
+    const handleReviewSubmit = async (e) => {
+      e.preventDefault();
+      
+      if (!isLoggedIn) {
+        alert('Please log in to submit a review.');
+        return;
+      }
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          alert('You must be logged in to submit a review.');
+          return;
+        }
+        
+        const response = await axios.post(
+          'http://localhost/api/reviews/add.php',
+          {
+            property_id: id,
+            rating: reviewForm.rating,
+            comment: reviewForm.comment
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (response.data && response.data.success === true) {
+          alert('Review submitted successfully!');
+          setReviewForm({
+            rating: 5,
+            comment: ''
+          });
+          setShowReviewForm(false);
+          
+          // Refresh reviews
+          const reviewsResponse = await axios.get(`http://localhost/api/reviews/get.php?property_id=${id}`);
+          
+          if (reviewsResponse.data && reviewsResponse.data.success === true) {
+            setReviews(reviewsResponse.data.reviews);
+            setAverageRating(reviewsResponse.data.average_rating);
+            setTotalReviews(reviewsResponse.data.total_reviews);
+          }
+        } else {
+          alert('Failed to submit review: ' + response.data.message);
+        }
+      } catch (err) {
+        console.error('Error submitting review:', err);
+        alert('Failed to submit review. Please try again.');
+      }
+    };
+  
+    const toggleSave = async () => {
+      if (!isLoggedIn) {
+        alert('Please log in to save properties.');
+        return;
+      }
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          alert('You must be logged in to save properties.');
+          return;
+        }
+        
+        const response = await axios.post(
+          saved ? 
+            'http://localhost/api/users/remove_saved_property.php' : 
+            'http://localhost/api/users/add_saved_property.php', // Fixed endpoint
+          { property_id: id },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (response.data.success) {
+          setSaved(!saved);
+          alert(response.data.message);
+        } else {
+          alert(response.data.message || 'Failed to update saved property');
+        }
+      } catch (err) {
+        console.error('Error updating saved property:', err);
+        alert('An error occurred while updating saved property');
+      }
   };
   
   const handleDeleteProperty = async () => {
@@ -334,7 +353,7 @@ function PropertyDetails() {
   
   if (loading) {
     return (
-      <Weblayout>
+      <>
         <div className="container py-5">
           <div className="text-center">
             <div className="spinner-border text-primary" role="status">
@@ -343,13 +362,13 @@ function PropertyDetails() {
             <p className="mt-3">Loading property details...</p>
           </div>
         </div>
-      </Weblayout>
+      </>
     );
   }
   
   if (error || !property) {
     return (
-      <Weblayout>
+      <>
         <div className="container py-5">
           <div className="alert alert-danger" role="alert">
             {error || 'Property not found'}
@@ -358,12 +377,12 @@ function PropertyDetails() {
             Back to Properties
           </Link>
         </div>
-      </Weblayout>
+      </>
     );
   }
   
   return (
-    <Weblayout>
+    <>
       {/* Property Header */}
       <section className="property-header bg-dark text-white py-5 position-relative overflow-hidden">
         <div className="container position-relative z-10">
@@ -397,16 +416,7 @@ function PropertyDetails() {
                 <h2 className="text-white fw-bold mb-3">
                   ${property.price.toLocaleString()}/mo
                 </h2>
-                <div className="d-grid gap-2">
-                  {/* Debug info panel */}
-                  <div className="bg-dark bg-opacity-50 p-2 rounded mb-2">
-                    <div className="text-white small">
-                      <div>isOwner: {isOwner.toString()}</div>
-                      <div>currentUserEmail: {currentUserEmail || 'N/A'}</div>
-                      <div>propertyOwnerEmail: {property.owner_email || 'N/A'}</div>
-                    </div>
-                  </div>
-                  
+                <div className="d-grid gap-2" style={{ position: 'relative', zIndex: 1000 }}>
                   {isOwner && (
                     <div className="d-flex gap-2 mb-2">
                       <button 
@@ -1136,7 +1146,7 @@ function PropertyDetails() {
           </form>
         </Modal.Body>
       </Modal>
-    </Weblayout>
+    </>
   );
 }
 

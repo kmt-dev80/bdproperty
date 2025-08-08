@@ -1,0 +1,122 @@
+/* src/assets/css/admin.css */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 250px;
+  background-color: #343a40;
+  color: white;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.admin-sidebar .sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-sidebar .sidebar-user {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+}
+
+.admin-sidebar .user-avatar {
+  margin-right: 15px;
+}
+
+.admin-sidebar .sidebar-nav {
+  padding: 20px 0;
+  flex: 1;
+}
+
+.admin-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.admin-sidebar .nav-link:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar .nav-link.active {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 3px solid #007bff;
+}
+
+.admin-content {
+  flex: 1;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.admin-main {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 70px);
+}
+
+.icon-box {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .admin-content {
+    margin-left: 0;
+  }
+  
+  .admin-content.sidebar-open {
+    margin-left: 0;
+  }
+}
+
+/* Admin login/register page styles */
+.admin-login-page,
+.admin-register-page {
+  background: linear-gradient(135deg, #a694ba 0%, #7dd8e1 100%);
+}
+
+.admin-login-page .card,
+.admin-register-page .card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.admin-login-page .card-body,
+.admin-register-page .card-body {
+  padding: 30px;
+}

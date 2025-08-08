@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Weblayout from '../layout/Weblayout';
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -41,7 +40,7 @@ function Contact() {
   };
 
   return (
-    <Weblayout>  
+    <>  
       {/* Hero Section */}
       <section className="contact-hero py-5 bg-dark text-white">
         <div className="container py-5">
@@ -228,7 +227,7 @@ function Contact() {
           ></iframe>
         </div>
       </section>
-    </Weblayout>
+    </>
   );
 }
 

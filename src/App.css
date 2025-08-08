@@ -82,10 +82,6 @@
   border-radius: 10px;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
-
  Star Rating Styles 
 .text-warning {
   color: #ffc107 !important;
@@ -93,4 +89,14 @@
 
 .card.border-primary {
   border-width: 2px;
+}
+
+/* In your CSS file */
+.truncate-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Number of lines to show */
+  line-clamp: 3; /* Standard property for compatibility */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

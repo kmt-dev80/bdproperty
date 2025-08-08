@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Weblayout from '../layout/Weblayout';
 import axios from 'axios';
 
 function Properties() {
@@ -119,7 +118,7 @@ function Properties() {
   };
   
   return (
-    <Weblayout>
+    <>
       {/* <!-- Property Listing Header --> */}
       <section className="property-listing-header bg-dark text-white py-5">
         <div className="container py-5">
@@ -294,7 +293,7 @@ function Properties() {
                       <p className="card-text text-muted mb-3">
                         <i className="fas fa-map-marker-alt text-danger me-1"></i> {property.address}
                       </p>
-                      <p className="card-text">{property.description}</p>
+                      <p className="card-text truncate-description">{property.description}</p>
                       
                       {/* Display rating if available */}
                       {property.avg_rating > 0 && (
@@ -362,7 +361,7 @@ function Properties() {
           )}
         </div>
       </section>
-    </Weblayout>
+    </>
   );
 }
 
