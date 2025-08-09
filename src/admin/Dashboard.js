@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { Card, Row, Col, Table, Button } from 'react-bootstrap';
 import { FaHome, FaUsers, FaBuilding, FaChartLine, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import axios from 'axios';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, get } = useAuth();
   const [stats, setStats] = useState({
     totalProperties: 0,
     totalUsers: 0,
@@ -21,17 +20,10 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const response = await get('/users/dashboard.php');
       
-      // Fetch dashboard stats
-      const statsResponse = await axios.get('http://localhost/api/users/dashboard.php', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (statsResponse.data.success) {
-        setStats(statsResponse.data.data);
+      if (response.success) {
+        setStats(response.data);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

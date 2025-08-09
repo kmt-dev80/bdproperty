@@ -118,10 +118,10 @@ function Header() {
           rememberMe: false
         });
         
-        // Redirect based on user type
-        if (response.data.user.user_type === 'admin' || response.data.user.user_type === 'agent') {
-          window.location.href = '/admin/dashboard';
-        }
+        // // Redirect based on user type
+        // if (response.data.user.user_type === 'admin' || response.data.user.user_type === 'agent') {
+        //   window.location.href = '/admin/dashboard';
+        // }
       } else {
         // Handle error response
         setError(response.data?.message || 'Login failed');

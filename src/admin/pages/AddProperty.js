@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Card, Form, Button, Alert, Row, Col, InputGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useAuth } from '../AuthContext'; // Import useAuth instead of axios
 
 const AddProperty = () => {
   const navigate = useNavigate();
+  const { uploadFile } = useAuth(); // Use uploadFile method from AuthContext
   const [propertyForm, setPropertyForm] = useState({
     title: '',
     type: '',
@@ -39,7 +40,7 @@ const AddProperty = () => {
     const { name, value, type, checked } = e.target;
     setPropertyForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? (checked ? '1' : '0') : value // Ensure checkbox values are sent as 1 or 0
     }));
   };
   
@@ -69,13 +70,6 @@ const AddProperty = () => {
     setSuccess('');
     
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError('You must be logged in to add a property');
-        setIsSubmitting(false);
-        return;
-      }
-      
       // Create FormData for file uploads
       const formData = new FormData();
       
@@ -99,19 +93,10 @@ const AddProperty = () => {
         });
       }
       
-      // API call to property endpoint
-      const response = await axios.post(
-        'http://localhost/api/properties/add_property.php',
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      // Use uploadFile method from AuthContext
+      const response = await uploadFile('/properties/add_property.php', formData);
       
-      if (response.data.success) {
+      if (response.success) {
         setSuccess('Property added successfully!');
         
         // Redirect to properties page after a short delay
@@ -119,18 +104,11 @@ const AddProperty = () => {
           navigate('/admin/properties');
         }, 2000);
       } else {
-        setError(response.data.message || 'Failed to add property');
+        setError(response.message || 'Failed to add property');
       }
     } catch (err) {
       console.error('Error:', err);
-      
-      if (err.response) {
-        setError(err.response.data.message || 'Failed to add property');
-      } else if (err.request) {
-        setError('No response from server. Please check your connection.');
-      } else {
-        setError(err.message || 'An error occurred while adding the property');
-      }
+      setError('An error occurred while adding the property');
     } finally {
       setIsSubmitting(false);
     }

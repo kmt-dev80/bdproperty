@@ -1,3 +1,4 @@
+// src/pages/admin/AdminRegister.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -14,7 +15,7 @@ const AdminRegister = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register } = useAuth(); // Already using the AuthContext register method
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -29,14 +30,14 @@ const AdminRegister = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+    
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
       return;
     }
-
+    
     const result = await register({
       name: formData.name,
       email: formData.email,

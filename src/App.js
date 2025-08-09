@@ -1,5 +1,7 @@
 // App.js
 import { Routes, Route, Navigate } from 'react-router-dom';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import Weblayout from './layout/Weblayout';
 import Home from './pages/Home';
 import Properties from './pages/Properties';
@@ -18,9 +20,10 @@ import Dashboard from './admin/Dashboard';
 import AdminProperties from './admin/pages/Properties';
 import AddProperty from './admin/pages/AddProperty';
 import EditProperty from './admin/pages/EditProperty';
+import Users from './admin/pages/Users';
 
 function AppRoutes() {
-  const { requireAdmin, requireNoUser } = useAuth();
+  const { requireAdmin } = useAuth();
 
   return (
     <Routes>
@@ -34,7 +37,7 @@ function AppRoutes() {
       <Route path="/profile" element={<Weblayout><Profile /></Weblayout>} />
 
       {/* Admin auth pages */}
-      <Route path="/admin/login" element={requireNoUser(<AdminLogin />)} />
+      <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/register" element={requireAdmin(<AdminRegister />)} />
 
       {/* Admin dashboard */}
@@ -43,6 +46,7 @@ function AppRoutes() {
         <Route path="properties" element={<AdminProperties />} />
         <Route path="add-property" element={<AddProperty />} />
         <Route path="edit-property/:id" element={<EditProperty />} />
+        <Route path="users" element={<Users />} />
       </Route>
 
       {/* Fallback */}

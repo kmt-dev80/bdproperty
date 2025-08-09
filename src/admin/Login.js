@@ -1,4 +1,3 @@
-// src/pages/admin/Login.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -16,11 +15,16 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+    
     const result = await login(email, password);
     
     if (result.success) {
-      navigate('/admin/dashboard');
+      // Check if user is admin or agent
+      if (result.user && (result.user.user_type === 'admin' || result.user.user_type === 'agent')) {
+        navigate('/admin/dashboard');
+      } else {
+        setError('You do not have permission to access the admin panel');
+      }
     } else {
       setError(result.message);
     }

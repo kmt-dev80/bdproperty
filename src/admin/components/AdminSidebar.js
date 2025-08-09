@@ -1,6 +1,7 @@
+// src/admin/components/AdminSidebar.js
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaHome, FaUsers, FaBuilding, FaSignOutAlt, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaTachometerAlt, FaHome, FaUsers, FaUserFriends, FaBuilding, FaSignOutAlt, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 
 const AdminSidebar = ({ isOpen, toggleSidebar, user, onLogout }) => {
   return (
@@ -51,13 +52,6 @@ const AdminSidebar = ({ isOpen, toggleSidebar, user, onLogout }) => {
                 <NavLink to="/admin/users" className="nav-link">
                   <FaUsers className="me-2" />
                   Users
-                </NavLink>
-              </li>
-              
-              <li className="nav-item">
-                <NavLink to="/admin/agents" className="nav-link">
-                  <FaBuilding className="me-2" />
-                  Agents
                 </NavLink>
               </li>
             </>

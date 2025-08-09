@@ -1,9 +1,54 @@
 // src/admin/AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
+import axios from "axios";
+
+// Create axios instance
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+  headers: {
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  }
+});
+
+// Add request interceptor for auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Create separate instance for file uploads
+const uploadApi = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+  headers: {
+    "Accept": "application/json"
+  }
+});
+
+// Add request interceptor for auth token to upload API
+uploadApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const AuthContext = createContext();
-
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
@@ -21,10 +66,10 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserInfo = async (token) => {
     try {
-      const res = await fetch('http://localhost/api/users/get_user.php', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
+      // Use the api instance instead of fetch
+      const res = await api.get('/users/get_user.php');
+      const data = res.data;
+      
       if (data.success) {
         setUser(data.user);
       } else {
@@ -40,12 +85,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch('http://localhost/api/users/login.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
+      // Use the api instance instead of fetch
+      const res = await api.post('/users/login.php', { email, password });
+      const data = res.data;
+      
       if (data.success) {
         localStorage.setItem('authToken', data.token);
         setUser(data.user);
@@ -60,15 +103,58 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const res = await fetch('http://localhost/api/users/register.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-      const data = await res.json();
-      return data;
+      // Use the api instance instead of fetch
+      const res = await api.post('/users/register.php', userData);
+      return res.data;
     } catch (err) {
       return { success: false, message: 'An error occurred during registration' };
+    }
+  };
+
+  // Add a method for file uploads
+  const uploadFile = async (endpoint, formData) => {
+    try {
+      const res = await uploadApi.post(endpoint, formData);
+      return res.data;
+    } catch (err) {
+      return { success: false, message: 'An error occurred during file upload' };
+    }
+  };
+
+  // Generic API request methods
+  const get = async (endpoint) => {
+    try {
+      const res = await api.get(endpoint);
+      return res.data;
+    } catch (err) {
+      return { success: false, message: 'An error occurred' };
+    }
+  };
+
+  const post = async (endpoint, data) => {
+    try {
+      const res = await api.post(endpoint, data);
+      return res.data;
+    } catch (err) {
+      return { success: false, message: 'An error occurred' };
+    }
+  };
+
+  const put = async (endpoint, data) => {
+    try {
+      const res = await api.put(endpoint, data);
+      return res.data;
+    } catch (err) {
+      return { success: false, message: 'An error occurred' };
+    }
+  };
+
+  const del = async (endpoint) => {
+    try {
+      const res = await api.delete(endpoint);
+      return res.data;
+    } catch (err) {
+      return { success: false, message: 'An error occurred' };
     }
   };
 
@@ -99,10 +185,18 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    uploadFile,
+    // Generic API methods
+    get,
+    post,
+    put,
+    del,
+    // Role checks
     isAdmin,
     isAgent,
     isLandlord,
     canAccessAdmin,
+    // Route guards
     requireAdmin,
     requireNoUser
   };

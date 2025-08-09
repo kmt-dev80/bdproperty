@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Form, Button, Alert, Row, Col, InputGroup } from 'react-bootstrap';
-import axios from 'axios';
+import { useAuth } from '../AuthContext';
 
 const EditProperty = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { get, uploadFile } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,19 +45,13 @@ const EditProperty = () => {
   
   const fetchProperty = async () => {
     try {
-      const token = localStorage.getItem('authToken');
       
-      const response = await axios.get(`http://localhost/api/properties/single_property.php?id=${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await get(`/properties/single_property.php?id=${id}`);
       
-      if (response.data.success) {
-        const propertyData = response.data.property;
+      if (response.success) {
+        const propertyData = response.property;
         setProperty(propertyData);
         
-        // Populate form with property data
         setPropertyForm({
           title: propertyData.title || '',
           type: propertyData.type || '',
@@ -97,7 +92,7 @@ const EditProperty = () => {
           setAmenities(updatedAmenities);
         }
       } else {
-        setError(response.data.message || 'Failed to fetch property');
+        setError(response.message || 'Failed to fetch property');
       }
     } catch (err) {
       console.error('Error fetching property:', err);
@@ -111,7 +106,7 @@ const EditProperty = () => {
     const { name, value, type, checked } = e.target;
     setPropertyForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? (checked ? '1' : '0') : value
     }));
   };
   
@@ -141,13 +136,6 @@ const EditProperty = () => {
     setSuccess('');
     
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError('You must be logged in to update a property');
-        setIsSubmitting(false);
-        return;
-      }
-      
       // Create FormData for file uploads
       const formData = new FormData();
       
@@ -174,19 +162,10 @@ const EditProperty = () => {
         });
       }
       
-      // API call to update property endpoint
-      const response = await axios.post(
-        'http://localhost/api/properties/update_property.php',
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      // Use uploadFile method from AuthContext
+      const response = await uploadFile('/properties/update_property.php', formData);
       
-      if (response.data.success) {
+      if (response.success) {
         setSuccess('Property updated successfully!');
         
         // Redirect to properties page after a short delay
@@ -194,18 +173,11 @@ const EditProperty = () => {
           navigate('/admin/properties');
         }, 2000);
       } else {
-        setError(response.data.message || 'Failed to update property');
+        setError(response.message || 'Failed to update property');
       }
     } catch (err) {
       console.error('Error:', err);
-      
-      if (err.response) {
-        setError(err.response.data.message || 'Failed to update property');
-      } else if (err.request) {
-        setError('No response from server. Please check your connection.');
-      } else {
-        setError(err.message || 'An error occurred while updating the property');
-      }
+      setError('An error occurred while updating the property');
     } finally {
       setIsSubmitting(false);
     }

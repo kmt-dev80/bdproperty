@@ -4,6 +4,7 @@ import { Button } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
 import TestimonialSlider from '../components/TestimonialSlider';
 import axios from 'axios';
+import Slider from 'react-slick';
 
 function Home() {
   const { setShowListPropertyModal } = useModal();
@@ -201,49 +202,65 @@ function Home() {
     e.target.src = 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   };
   
+  // Settings for the react-slick carousel
+  const carouselSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    fade: true,
+    cssEase: 'linear',
+    responsive: [
+      {
+        breakpoint: 768,
+        settings: {
+          arrows: false
+        }
+      }
+    ]
+  };
+  
+  // Carousel slides data
+  const carouselSlides = [
+    {
+      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      title: 'Modern Luxury Villas',
+      description: 'Discover our exclusive collection of waterfront properties',
+      buttonText: 'Explore Now'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      title: 'Premium Family Homes',
+      description: 'Spacious designs perfect for growing families',
+      buttonText: 'View Listings'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80',
+      title: 'Executive Office Spaces',
+      description: 'Professional environments for business success',
+      buttonText: 'Browse Offices'
+    }
+  ];
+  
   return (
     <>
-      {/* Image Slider */}
-      <div id="propertyCarousel" className="carousel slide carousel-fade" data-bs-ride="carousel">
-        <div className="carousel-indicators">
-            <button type="button" data-bs-target="#propertyCarousel" data-bs-slide-to="0" className="active"></button>
-            <button type="button" data-bs-target="#propertyCarousel" data-bs-slide-to="1"></button>
-            <button type="button" data-bs-target="#propertyCarousel" data-bs-slide-to="2"></button>
-        </div>
-        <div className="carousel-inner">
-            <div className="carousel-item active">
-                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" className="d-block w-100" alt="Luxury Home"/>
-                <div className="carousel-caption d-none d-md-block animate__animated animate__fadeInUp">
-                    <h2 className="display-4 fw-bold">Modern Luxury Villas</h2>
-                    <p className="lead">Discover our exclusive collection of waterfront properties</p>
-                    <a href="#properties" className="btn btn-warning btn-lg mt-3">Explore Now</a>
-                </div>
+      {/* Image Slider - Using react-slick */}
+      <div className="property-carousel">
+        <Slider {...carouselSettings}>
+          {carouselSlides.map((slide, index) => (
+            <div key={index} className="carousel-slide">
+              <img src={slide.image} className="d-block w-100" alt={slide.title} />
+              <div className="carousel-caption d-none d-md-block animate__animated animate__fadeInUp">
+                <h2 className="display-4 fw-bold">{slide.title}</h2>
+                <p className="lead">{slide.description}</p>
+                <a href="#properties" className="btn btn-warning btn-lg mt-3">{slide.buttonText}</a>
+              </div>
             </div>
-            <div className="carousel-item">
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" className="d-block w-100" alt="Luxury Home"/>
-                <div className="carousel-caption d-none d-md-block animate__animated animate__fadeInUp">
-                    <h2 className="display-4 fw-bold">Premium Family Homes</h2>
-                    <p className="lead">Spacious designs perfect for growing families</p>
-                    <a href="#properties" className="btn btn-warning btn-lg mt-3">View Listings</a>
-                </div>
-            </div>
-            <div className="carousel-item">
-                <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" className="d-block w-100" alt="Luxury Home"/>
-                <div className="carousel-caption d-none d-md-block animate__animated animate__fadeInUp">
-                    <h2 className="display-4 fw-bold">Executive Office Spaces</h2>
-                    <p className="lead">Professional environments for business success</p>
-                    <a href="#properties" className="btn btn-warning btn-lg mt-3">Browse Offices</a>
-                </div>
-            </div>
-        </div>
-        <button className="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
-            <span className="carousel-control-prev-icon"></span>
-            <span className="visually-hidden">Previous</span>
-        </button>
-        <button className="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
-            <span className="carousel-control-next-icon"></span>
-            <span className="visually-hidden">Next</span>
-        </button>
+          ))}
+        </Slider>
       </div>
       
       {/* Search Section */}

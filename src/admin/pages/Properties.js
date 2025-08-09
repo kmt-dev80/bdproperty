@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Row, Col } from 'react-bootstrap';
 import { FaPlus, FaSearch, FaEye, FaEdit, FaTrash, FaFilter } from 'react-icons/fa';
-import axios from 'axios';
+import { useAuth } from '../AuthContext'; // Import useAuth instead of axios
 
 const Properties = () => {
+  const { get, post } = useAuth(); // Use get and post methods from AuthContext
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,16 +18,11 @@ const Properties = () => {
 
   const fetchProperties = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      // Use get method from AuthContext
+      const response = await get('/properties/get_property.php');
       
-      const response = await axios.get('http://localhost/api/properties/get_property.php', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.data.success) {
-        setProperties(response.data.properties);
+      if (response.success) {
+        setProperties(response.properties);
       }
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -38,25 +34,15 @@ const Properties = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this property?')) {
       try {
-        const token = localStorage.getItem('authToken');
+        // Use post method from AuthContext
+        const response = await post('/properties/delete_property.php', { property_id: id });
         
-        const response = await axios.post(
-          'http://localhost/api/properties/delete_property.php',
-          { property_id: id },
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        if (response.data.success) {
+        if (response.success) {
           // Remove property from state
           setProperties(properties.filter(property => property.id !== id));
           alert('Property deleted successfully');
         } else {
-          alert(response.data.message || 'Failed to delete property');
+          alert(response.message || 'Failed to delete property');
         }
       } catch (error) {
         console.error('Error deleting property:', error);
