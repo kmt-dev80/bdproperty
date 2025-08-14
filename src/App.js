@@ -21,6 +21,8 @@ import AdminProperties from './admin/pages/Properties';
 import AddProperty from './admin/pages/AddProperty';
 import EditProperty from './admin/pages/EditProperty';
 import Users from './admin/pages/Users';
+import { ModalProvider } from './context/ModalContext';
+import ModalContainer from './components/ModalContainer';
 
 function AppRoutes() {
   const { requireAdmin } = useAuth();
@@ -58,7 +60,10 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <ModalProvider>
+        <AppRoutes />
+        <ModalContainer />
+      </ModalProvider>
     </AuthProvider>
   );
 }

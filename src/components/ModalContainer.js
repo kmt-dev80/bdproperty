@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Modal, Button, Form, InputGroup, Alert, Row, Col } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
-import axios from 'axios';
+import { useAuth, uploadApi } from '../admin/AuthContext';
 
 const ModalContainer = () => {
   const { showListPropertyModal, setShowListPropertyModal, editingProperty, setEditingProperty } = useModal();
+  const { user, post, del, uploadFile } = useAuth();
   
   // Determine if we're in edit mode
   const isEditMode = editingProperty && editingProperty.id;
@@ -58,16 +59,14 @@ const ModalContainer = () => {
         description: editingProperty.description || '',
         features: editingProperty.features || '',
         featured: editingProperty.featured || false,
-        images: [] // Images will be handled separately
+        images: []
       });
       
       // Load amenities if they exist
       if (editingProperty.amenities && Array.isArray(editingProperty.amenities) && editingProperty.amenities.length > 0) {
         const updatedAmenities = [...amenities];
         
-        // Map existing amenities to our predefined list
         editingProperty.amenities.forEach(propAmenity => {
-          // Add null checks for amenity_name and text
           if (propAmenity && propAmenity.amenity_name) {
             const index = updatedAmenities.findIndex(a => 
               a && a.text && propAmenity.amenity_name && 
@@ -150,124 +149,80 @@ const ModalContainer = () => {
   };
   
   const handlePropertySubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-    setSuccess('');
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError('');
+  setSuccess('');
+
+  if (!user) {
+    setError('You must be logged in to list a property');
+    setIsSubmitting(false);
+    return;
+  }
+
+  try {
+    const formData = new FormData();
     
-    // Check if user is authenticated
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      setError('You must be logged in to list a property');
-      setIsSubmitting(false);
-      return;
+    // Append all form fields
+    formData.append('title', propertyForm.title);
+    formData.append('type', propertyForm.type);
+    formData.append('price', propertyForm.price);
+    formData.append('area', propertyForm.area || '');
+    formData.append('bedrooms', propertyForm.bedrooms);
+    formData.append('bathrooms', propertyForm.bathrooms);
+    formData.append('year', propertyForm.year || '');
+    formData.append('address', propertyForm.address);
+    formData.append('location', propertyForm.location);
+    formData.append('description', propertyForm.description);
+    formData.append('features', propertyForm.features || '');
+    formData.append('featured', propertyForm.featured ? '1' : '0');
+
+    // Add property ID if in edit mode
+    if (isEditMode) {
+      formData.append('property_id', editingProperty.id);
     }
-    
-    try {
-      // Create FormData for file uploads
-      const formData = new FormData();
-      
-      // Add all form fields to FormData
-      Object.keys(propertyForm).forEach(key => {
-        if (key !== 'images') {
-          formData.append(key, propertyForm[key]);
-        }
+
+    // Append amenities as JSON string
+    const amenitiesWithDistance = amenities.filter(amenity => amenity.distance && amenity.distance.trim() !== '');
+    formData.append('amenities', JSON.stringify(amenitiesWithDistance));
+
+    // Append files
+    if (propertyForm.images && propertyForm.images.length > 0) {
+      propertyForm.images.forEach((file, index) => {
+        formData.append(`images[${index}]`, file);
       });
-      
-      // Add property ID if in edit mode
-      if (isEditMode) {
-        formData.append('property_id', editingProperty.id);
-      }
-      
-      // Filter amenities that have distances filled
-      const amenitiesWithDistance = amenities.filter(amenity => amenity.distance && amenity.distance.trim() !== '');
-      
-      // Add amenities as JSON string
-      formData.append('amenities', JSON.stringify(amenitiesWithDistance));
-      
-      // Add images to FormData
-      if (propertyForm.images && propertyForm.images.length > 0) {
-        propertyForm.images.forEach((image, index) => {
-          formData.append(`images[${index}]`, image);
-        });
-      }
-      
-      // Determine API endpoint based on mode
-      const endpoint = isEditMode 
-        ? 'http://localhost/api/properties/update_property.php'
-        : 'http://localhost/api/properties/add_property.php';
-      
-      // API call to property endpoint
-      const response = await axios.post(endpoint, formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      if (response.data.success) {
-        const successMessage = isEditMode 
-          ? 'Property updated successfully!' 
-          : 'Property listed successfully!';
-          
-        setSuccess(successMessage);
-        
-        // Close modal after a short delay
-        setTimeout(() => {
-          setShowListPropertyModal(false);
-          setEditingProperty(null);
-          setSuccess('');
-          
-          // Refresh the page or update the property list
-          window.location.reload(); // Simple approach, could be improved with state management
-        }, 2000);
-        
-        // Reset form if not in edit mode
-        if (!isEditMode) {
-          setPropertyForm({
-            title: '',
-            type: '',
-            price: '',
-            area: '',
-            bedrooms: '',
-            bathrooms: '',
-            year: '',
-            address: '',
-            location: '',
-            description: '',
-            features: '',
-            featured: false,
-            images: []
-          });
-          
-          // Reset amenities
-          setAmenities([
-            { text: 'School', icon: 'fa-school', distance: '' },
-            { text: 'Hospital', icon: 'fa-hospital', distance: '' },
-            { text: 'Shopping Mall', icon: 'fa-shopping-cart', distance: '' },
-            { text: 'Park', icon: 'fa-tree', distance: '' },
-            { text: 'Restaurant', icon: 'fa-utensils', distance: '' },
-            { text: 'Public Transport', icon: 'fa-bus', distance: '' }
-          ]);
-        }
-      } else {
-        setError(response.data.message || 'Property operation failed');
-      }
-      
-    } catch (err) {
-      console.error('Error:', err);
-      
-      if (err.response) {
-        setError(err.response.data.message || 'Property operation failed');
-      } else if (err.request) {
-        setError('No response from server. Please check your connection.');
-      } else {
-        setError(err.message || 'An error occurred while processing your property');
-      }
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+
+    const endpoint = isEditMode 
+      ? 'properties/update_property.php'
+      : 'properties/add_property.php';
+
+    // Use uploadApi for file uploads
+    const response = await uploadFile(endpoint, formData);
+
+    if (response.success) {
+      const successMessage = isEditMode 
+        ? 'Property updated successfully!' 
+        : 'Property listed successfully!';
+        
+      setSuccess(successMessage);
+      
+      setTimeout(() => {
+        setShowListPropertyModal(false);
+        setEditingProperty(null);
+        setSuccess('');
+        window.location.reload();
+      }, 2000);
+    } else {
+      setError(response.message || 'Property operation failed');
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    setError(err.response?.data?.message || 'An error occurred while processing your property');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   const handleDeleteProperty = async () => {
     if (!deleteConfirm) {
@@ -279,42 +234,23 @@ const ModalContainer = () => {
     setError('');
     
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError('You must be logged in to delete a property');
-        setIsSubmitting(false);
-        return;
-      }
+      const response = await del(`properties/delete_property.php?property_id=${editingProperty.id}`);
       
-      const response = await axios.post(
-        'http://localhost/api/properties/delete_property.php',
-        { property_id: editingProperty.id },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      if (response.data.success) {
+      if (response.success) {
         setSuccess('Property deleted successfully!');
         
-        // Close modal after a short delay
         setTimeout(() => {
           setShowListPropertyModal(false);
           setEditingProperty(null);
           setSuccess('');
-          
-          // Redirect to properties page or refresh
           window.location.href = '/properties';
         }, 2000);
       } else {
-        setError(response.data.message || 'Failed to delete property');
+        setError(response.message || 'Failed to delete property');
       }
     } catch (err) {
       console.error('Error deleting property:', err);
-      setError(err.response?.data?.message || 'Failed to delete property');
+      setError(err.message || 'Failed to delete property');
     } finally {
       setIsSubmitting(false);
     }
@@ -600,7 +536,7 @@ const ModalContainer = () => {
               </Form.Group>
             </div>
             
-            <div className="col-12 mt-4">
+             <div className="col-12 mt-4">
               <div className="d-flex gap-2">
                 {isEditMode && (
                   <Button 
@@ -616,22 +552,22 @@ const ModalContainer = () => {
                 
                 <Button 
                   variant="primary" 
-                  type="submit" 
-                  className="flex-grow-1 py-3 fw-bold shadow-sm"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting 
-                    ? (isEditMode ? 'Updating...' : 'Submitting...') 
-                    : (isEditMode ? 'Update Property' : 'Submit Property Listing')
-                  }
-                </Button>
+                    type="submit" 
+                    className="flex-grow-1 py-3 fw-bold shadow-sm"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting 
+                      ? (isEditMode ? 'Updating...' : 'Submitting...') 
+                      : (isEditMode ? 'Update Property' : 'Submit Property Listing')
+                    }
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </Form>
-      </Modal.Body>
-    </Modal>
-  );
-};
-
-export default ModalContainer;
+          </Form>
+        </Modal.Body>
+      </Modal>
+    );
+  };
+  
+  export default ModalContainer;

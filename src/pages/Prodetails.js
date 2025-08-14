@@ -1,12 +1,20 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
+import { useAuth } from '../admin/AuthContext'; // Import useAuth
 
 function PropertyDetails() {
   const { id } = useParams();
   const { openListPropertyModal } = useModal();
+  const { 
+    user, 
+    get, 
+    post, 
+    del, 
+    isLoggedIn // Get isLoggedIn from AuthContext instead of managing it locally
+  } = useAuth(); // Destructure needed methods from AuthContext
+
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -15,11 +23,8 @@ function PropertyDetails() {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [currentUserEmail, setCurrentUserEmail] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);
   
   // Add state for modals
   const [showContactModal, setShowContactModal] = useState(false);
@@ -44,35 +49,7 @@ function PropertyDetails() {
   });
   
   const [showReviewForm, setShowReviewForm] = useState(false);
-  
-  // Check if user is logged in and extract user ID and email from token and user data
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      try {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        
-        // Extract user ID from token
-        const tokenParts = token.split('-');
-        if (tokenParts.length >= 4 && tokenParts[0] === 'luxury' && tokenParts[1] === 'homes' && tokenParts[2] === 'token') {
-          const userId = tokenParts[3];
-          setCurrentUserId(userId);
-          
-          // Get user email from user data
-          if (user && user.email) {
-            setCurrentUserEmail(user.email.toLowerCase()); // Convert to lowercase for case-insensitive comparison
-          }
-        }
-      } catch (e) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
-  
+
   // Fetch property details and reviews
   useEffect(() => {
     const fetchPropertyDetails = async () => {
@@ -80,46 +57,31 @@ function PropertyDetails() {
       setError('');
       
       try {
-        // Use the correct API endpoint for getting a single property
-        const response = await axios.get(`http://localhost/api/properties/get.php?id=${id}`);
+        // Use get method from AuthContext
+        const response = await get(`/properties/get.php?id=${id}`);
         
-        if (response.data && response.data.success === true) {
-          const propertyData = response.data.data;
+        if (response && response.success === true) {
+          const propertyData = response.data;
           
           setProperty(propertyData);
-          
-          // Set reviews from the property data
           setReviews(propertyData.reviews || []);
           setAverageRating(propertyData.avg_rating || 0);
           setTotalReviews(propertyData.total_reviews || 0);
           
-          // Check if current user is the owner using email comparison
-          if (currentUserEmail && propertyData && propertyData.owner_email) {
-            // Convert both to lowercase for case-insensitive comparison
-            if (currentUserEmail === propertyData.owner_email.toLowerCase()) {
+          // Check if current user is the owner
+          if (user && propertyData && propertyData.owner_email) {
+            if (user.email.toLowerCase() === propertyData.owner_email.toLowerCase()) {
               setIsOwner(true);
-            } else {
-              console.log("User is not the owner");
             }
-          } else {
-            console.log("No user email or property owner email found");
           }
           
           // Check if property is saved by current user
-          if (isLoggedIn && currentUserId) {
+          if (isLoggedIn && user?.id) {
             try {
-              const token = localStorage.getItem('authToken');
-              const savedResponse = await axios.get(
-                `http://localhost/api/users/get_saved_properties.php?property_id=${id}`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${token}`
-                  }
-                }
-              );
+              const savedResponse = await get(`/users/get_saved_properties.php?property_id=${id}`);
               
-              if (savedResponse.data.success) {
-                setSaved(savedResponse.data.is_saved);
+              if (savedResponse.success) {
+                setSaved(savedResponse.is_saved);
               }
             } catch (err) {
               console.error('Error checking if property is saved:', err);
@@ -138,144 +100,120 @@ function PropertyDetails() {
     if (id) {
       fetchPropertyDetails();
     }
-  }, [id, currentUserEmail, isLoggedIn, currentUserId]);
-  
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    };
-  
-    const handleReviewChange = (e) => {
-      const { name, value } = e.target;
-      setReviewForm(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    };
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      
-      try {
-        const response = await axios.post('http://localhost/api/message/tour-request.php', {
-          propertyId: id,
-          ...formData
-        });
-        
-        if (response.data && response.data.success === true) {
-          alert(`Tour request submitted successfully! We will contact you shortly.\n\nProperty: ${response.data.property_title}\nOwner: ${response.data.owner_name}`);
-          setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            message: '',
-            tourDate: 'As soon as possible'
-          });
-          setShowTourModal(false); // Close the modal after submission
-        } else {
-          alert('Failed to submit tour request: ' + response.data.message);
-        }
-      } catch (err) {
-        alert('Failed to submit tour request. Please try again.');
-      }
-    };
-  
-    const handleReviewSubmit = async (e) => {
-      e.preventDefault();
-      
-      if (!isLoggedIn) {
-        alert('Please log in to submit a review.');
-        return;
-      }
-      
-      try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          alert('You must be logged in to submit a review.');
-          return;
-        }
-        
-        const response = await axios.post(
-          'http://localhost/api/reviews/add.php',
-          {
-            property_id: id,
-            rating: reviewForm.rating,
-            comment: reviewForm.comment
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        if (response.data && response.data.success === true) {
-          alert('Review submitted successfully!');
-          setReviewForm({
-            rating: 5,
-            comment: ''
-          });
-          setShowReviewForm(false);
-          
-          // Refresh reviews
-          const reviewsResponse = await axios.get(`http://localhost/api/reviews/get.php?property_id=${id}`);
-          
-          if (reviewsResponse.data && reviewsResponse.data.success === true) {
-            setReviews(reviewsResponse.data.reviews);
-            setAverageRating(reviewsResponse.data.average_rating);
-            setTotalReviews(reviewsResponse.data.total_reviews);
-          }
-        } else {
-          alert('Failed to submit review: ' + response.data.message);
-        }
-      } catch (err) {
-        console.error('Error submitting review:', err);
-        alert('Failed to submit review. Please try again.');
-      }
-    };
-  
-    const toggleSave = async () => {
-      if (!isLoggedIn) {
-        alert('Please log in to save properties.');
-        return;
-      }
-      
-      try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          alert('You must be logged in to save properties.');
-          return;
-        }
-        
-        const response = await axios.post(
-          saved ? 
-            'http://localhost/api/users/remove_saved_property.php' : 
-            'http://localhost/api/users/add_saved_property.php', // Fixed endpoint
-          { property_id: id },
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        if (response.data.success) {
-          setSaved(!saved);
-          alert(response.data.message);
-        } else {
-          alert(response.data.message || 'Failed to update saved property');
-        }
-      } catch (err) {
-        console.error('Error updating saved property:', err);
-        alert('An error occurred while updating saved property');
-      }
+  }, [id, user, isLoggedIn, get]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-  
+
+  const handleReviewChange = (e) => {
+    const { name, value } = e.target;
+    setReviewForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await post('/message/tour-request.php', {
+        propertyId: id,
+        ...formData
+      });
+      
+      if (response && response.success === true) {
+        alert(`Tour request submitted successfully! We will contact you shortly.\n\nProperty: ${response.property_title}\nOwner: ${response.owner_name}`);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: '',
+          tourDate: 'As soon as possible'
+        });
+        setShowTourModal(false);
+      } else {
+        alert('Failed to submit tour request: ' + response.message);
+      }
+    } catch (err) {
+      alert('Failed to submit tour request. Please try again.');
+    }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!isLoggedIn) {
+      alert('Please log in to submit a review.');
+      return;
+    }
+    
+    try {
+      const response = await post(
+        '/reviews/add.php',
+        {
+          property_id: id,
+          rating: reviewForm.rating,
+          comment: reviewForm.comment
+        }
+      );
+      
+      if (response && response.success === true) {
+        alert('Review submitted successfully!');
+        setReviewForm({
+          rating: 5,
+          comment: ''
+        });
+        setShowReviewForm(false);
+        
+        // Refresh reviews
+        const reviewsResponse = await get(`/reviews/get.php?property_id=${id}`);
+        
+        if (reviewsResponse && reviewsResponse.success === true) {
+          setReviews(reviewsResponse.reviews);
+          setAverageRating(reviewsResponse.average_rating);
+          setTotalReviews(reviewsResponse.total_reviews);
+        }
+      } else {
+        alert('Failed to submit review: ' + response.message);
+      }
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      alert('Failed to submit review. Please try again.');
+    }
+  };
+
+  const toggleSave = async () => {
+    if (!isLoggedIn) {
+      alert('Please log in to save properties.');
+      return;
+    }
+    
+    try {
+      const response = await post(
+        saved ? 
+          '/users/remove_saved_property.php' : 
+          '/users/add_saved_property.php',
+        { property_id: id }
+      );
+      
+      if (response.success) {
+        setSaved(!saved);
+        alert(response.message);
+      } else {
+        alert(response.message || 'Failed to update saved property');
+      }
+    } catch (err) {
+      console.error('Error updating saved property:', err);
+      alert('An error occurred while updating saved property');
+    }
+  };
+
   const handleDeleteProperty = async () => {
     if (!showDeleteConfirm) {
       setShowDeleteConfirm(true);
@@ -283,29 +221,17 @@ function PropertyDetails() {
     }
     
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        alert('You must be logged in to delete a property');
-        return;
-      }
-      
-      const response = await axios.post(
-        'http://localhost/api/properties/delete_property.php',
-        { property_id: id },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+      const response = await post(
+        '/properties/delete_property.php',
+        { property_id: id }
       );
       
-      if (response.data.success) {
+      if (response.success) {
         alert('Property deleted successfully!');
         // Redirect to properties page
         window.location.href = '/properties';
       } else {
-        alert('Failed to delete property: ' + response.data.message);
+        alert('Failed to delete property: ' + response.message);
       }
     } catch (err) {
       console.error('Error deleting property:', err);

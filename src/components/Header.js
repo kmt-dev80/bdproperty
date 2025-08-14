@@ -1,9 +1,8 @@
-// src/components/Header.js
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Modal, Form, Alert, NavDropdown } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
-import axios from 'axios';
+import { useAuth } from '../admin/AuthContext';
 
 function Header() {
   const { 
@@ -13,9 +12,8 @@ function Header() {
     setShowRegisterModal
   } = useModal();
   
-  // Authentication state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user, post, loading, login, register, logout } = useAuth();
+  const navigate = useNavigate();
   
   // Form states
   const [loginForm, setLoginForm] = useState({
@@ -30,45 +28,39 @@ function Header() {
     phone: '',
     password: '',
     confirmPassword: '',
-    userType: 'tenant', // Default to tenant
+    userType: 'tenant',
     terms: false
   });
   
-  // Loading and error states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  // Check authentication status on component mount
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('user');
+
+const handleLogout = async () => {
+  try {
+    // Use the post method from your AuthContext instead of direct api
+    const response = await post('/users/logout.php');
     
-    if (token && userData) {
-      try {
-        // Parse user data only if it's not null or undefined
-        const parsedUser = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUser(parsedUser);
-      } catch (e) {
-        console.error("Error parsing user data:", e);
-        // Clear invalid data from localStorage
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-      }
+    if (response.success) {
+      // Clear client-side auth state
+      logout(); // From your AuthContext
+      
+      // Show success message
+      setSuccess('You have been successfully logged out');
+      
+      // Redirect after a short delay
+      setTimeout(() => navigate('/'), 1000);
+    } else {
+      setError(response.message || 'Logout failed');
     }
-  }, []);
+  } catch (err) {
+    // If API call fails, still clear client-side state
+    logout(); // From your AuthContext
+    setError('Logout failed. Please try again.');
+    console.error("Logout error:", err);
+  }
+};
   
-  // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
-    setUser(null);
-    setSuccess('You have been successfully logged out');
-  };
-  
-  // Handle form changes
   const handleLoginChange = (e) => {
     const { name, value, type, checked } = e.target;
     setLoginForm(prev => ({
@@ -85,75 +77,37 @@ function Header() {
     }));
   };
   
-  // Handle login submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
     
     try {
-      const response = await axios.post('http://localhost/api/users/login.php', {
-        email: loginForm.email,
-        password: loginForm.password
-      });
+      const result = await login(loginForm.email, loginForm.password);
       
-      // Check the response structure based on your PHP API
-      if (response.data && response.data.success === true) {
-        // Save token and user data to localStorage
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Update authentication state
-        setIsLoggedIn(true);
-        setUser(response.data.user);
-        
-        // Close modal and show success
+      if (result.success) {
         setShowLoginModal(false);
         setSuccess('Login successful!');
-        
-        // Reset form
         setLoginForm({
           email: '',
           password: '',
           rememberMe: false
         });
-        
-        // // Redirect based on user type
-        // if (response.data.user.user_type === 'admin' || response.data.user.user_type === 'agent') {
-        //   window.location.href = '/admin/dashboard';
-        // }
       } else {
-        // Handle error response
-        setError(response.data?.message || 'Login failed');
+        setError(result.message || 'Login failed');
       }
     } catch (err) {
-      // Axios error handling
-      if (err.response) {
-        // Check if the error response has the expected structure
-        if (err.response.data && err.response.data.message) {
-          setError(err.response.data.message);
-        } else {
-          setError('Login failed');
-        }
-      } else if (err.request) {
-        // The request was made but no response was received
-        setError('No response from server. Please check your connection.');
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        setError(err.message || 'An error occurred during login');
-      }
+      setError(err.message || 'An error occurred during login');
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  // Handle registration submission
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
     
-    // Validate passwords match
     if (registerForm.password !== registerForm.confirmPassword) {
       setError('Passwords do not match');
       setIsSubmitting(false);
@@ -161,7 +115,7 @@ function Header() {
     }
     
     try {
-      const response = await axios.post('http://localhost/api/users/register.php', {
+      const result = await register({
         name: registerForm.name,
         email: registerForm.email,
         phone: registerForm.phone,
@@ -169,47 +123,24 @@ function Header() {
         user_type: registerForm.userType
       });
       
-      // Check the response structure based on your PHP API
-      if (response.data && response.data.success === true) {
-        // Close modal and show success
+      if (result.success) {
         setShowRegisterModal(false);
         setSuccess('Registration successful! Please login with your new account.');
-        
-        // Reset form
         setRegisterForm({
           name: '',
           email: '',
           phone: '',
           password: '',
           confirmPassword: '',
-          userType: 'tenant', // Default to tenant
+          userType: 'tenant',
           terms: false
         });
-        
-        // Open login modal after successful registration
-        setTimeout(() => {
-          setShowLoginModal(true);
-        }, 1500);
+        setTimeout(() => setShowLoginModal(true), 1500);
       } else {
-        // Handle error response
-        setError(response.data?.message || 'Registration failed');
+        setError(result.message || 'Registration failed');
       }
     } catch (err) {
-      // Axios error handling
-      if (err.response) {
-        // Check if the error response has the expected structure
-        if (err.response.data && err.response.data.message) {
-          setError(err.response.data.message);
-        } else {
-          setError('Registration failed');
-        }
-      } else if (err.request) {
-        // The request was made but no response was received
-        setError('No response from server. Please check your connection.');
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        setError(err.message || 'An error occurred during registration');
-      }
+      setError(err.message || 'An error occurred during registration');
     } finally {
       setIsSubmitting(false);
     }
@@ -217,7 +148,6 @@ function Header() {
   
   return (
     <>
-      {/* Navigation */}
       <Navbar bg="dark" variant="dark" expand="lg" fixed="top" className="navbar-dark">
         <Container>
           <Navbar.Brand as={Link} to="/" className="fw-bold">
@@ -234,34 +164,33 @@ function Header() {
               <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
             </Nav>
             <div className="ms-lg-3 mt-3 mt-lg-0 d-flex gap-2 text-light">
-              {isLoggedIn ? (
-                 <NavDropdown 
+              {user ? (
+                <NavDropdown 
                   title={
-                  <div className="d-flex align-items-center">
-                    {user?.profile_image ? (
-                      <img 
-                        src={`http://localhost/api/${user.profile_image}`} 
-                        alt="Profile" 
-                        className="rounded-circle me-2"
-                        style={{ width: '30px', height: '30px', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <div 
-                        className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2"
-                        style={{ width: '30px', height: '30px' }}>
-                        {user?.name ? user.name.charAt(0).toUpperCase() : <i className="fas fa-user" />}
-                      </div>
-                          )}
-                          <span>{user?.name || user?.email || 'Profile'}</span>
+                    <div className="d-flex align-items-center">
+                      {user.profile_image ? (
+                        <img 
+                          src={`${process.env.REACT_APP_API_URL}${user.profile_image}`} 
+                          alt="Profile" 
+                          className="rounded-circle me-2"
+                          style={{ width: '30px', height: '30px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2"
+                          style={{ width: '30px', height: '30px' }}>
+                          {user.name?.charAt(0).toUpperCase() || <i className="fas fa-user" />}
                         </div>
-                      } 
-                      id="basic-nav-dropdown"
-                      align="end"
-                    >
+                      )}
+                      <span>{user.name || user.email || 'Profile'}</span>
+                    </div>
+                  } 
+                  id="basic-nav-dropdown"
+                  align="end"
+                >
                   <NavDropdown.Item as={Link} to="/profile">
                     <i className="fas fa-user me-2"></i> My Profile
                   </NavDropdown.Item>
-                  {(user?.user_type === 'admin' || user?.user_type === 'agent') && (
+                  {(user.user_type === 'admin' || user.user_type === 'agent') && (
                     <NavDropdown.Item as={Link} to="/admin/dashboard">
                       <i className="fas fa-cog me-2"></i> Admin Panel
                     </NavDropdown.Item>
@@ -285,7 +214,6 @@ function Header() {
         </Container>
       </Navbar>
       
-      {/* Success Alert */}
       {success && (
         <Alert variant="success" className="position-fixed top-0 start-50 translate-middle-x mt-5" style={{ zIndex: 9999 }}>
           {success}

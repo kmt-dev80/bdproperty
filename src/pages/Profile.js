@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Form, Button, Alert, Row, Col, Tabs, Tab, Table, Badge } from 'react-bootstrap';
 import { FaUser, FaHome, FaHeart, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
-import axios from 'axios';
+import { useAuth } from '../admin/AuthContext';
 
 function Profile() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, get, post, logout } = useAuth();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -28,72 +27,41 @@ function Profile() {
   const [imagePreview, setImagePreview] = useState(null);
   
   useEffect(() => {
-    fetchUserData();
-    fetchSavedProperties();
-  }, []);
-  
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-      
-      const response = await axios.get('http://localhost/api/users/get_user.php', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+    if (!loading && user) {
+      // Set form data
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        bio: user.bio || '',
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       });
       
-      if (response.data.success) {
-        const userData = response.data.user;
-        setUser(userData);
-        
-        // Set form data
-        setProfileForm({
-          name: userData.name || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-          bio: userData.bio || '',
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        });
-        
-        // Set profile image preview
-        if (userData.profile_image) {
-          setImagePreview(`http://localhost/api/${userData.profile_image}`);
-        }
-      } else {
-        setError('Failed to fetch user data');
+      // Set profile image preview
+      if (user.profile_image) {
+        setImagePreview(`http://localhost/api/${user.profile_image}`);
       }
-    } catch (err) {
-      console.error('Error fetching user data:', err);
-      setError('An error occurred while fetching your profile');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [user, loading]);
   
-  const fetchSavedProperties = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
-      
-      const response = await axios.get('http://localhost/api/users/get_saved_properties.php', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+  useEffect(() => {
+    const fetchSavedProperties = async () => {
+      try {
+        const response = await get('/users/get_saved_properties.php');
+        if (response.success) {
+          setSavedProperties(response.properties);
         }
-      });
-      
-      if (response.data.success) {
-        setSavedProperties(response.data.properties);
+      } catch (err) {
+        console.error('Error fetching saved properties:', err);
       }
-    } catch (err) {
-      console.error('Error fetching saved properties:', err);
+    };
+    
+    if (user) {
+      fetchSavedProperties();
     }
-  };
+  }, [user, get]);
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -115,16 +83,9 @@ function Profile() {
     e.preventDefault();
     setError('');
     setSuccess('');
-
     if (isSubmitting) return;
     
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError('You must be logged in to update your profile');
-        return;
-      }
-      
       // Validate passwords if changing
       if (profileForm.newPassword && profileForm.newPassword !== profileForm.confirmPassword) {
         setError('New passwords do not match');
@@ -146,25 +107,22 @@ function Profile() {
         formData.append('profile_image', profileImage);
       }
       
-      const response = await axios.post(
-        'http://localhost/api/users/update_profile.php',
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      const response = await post('/users/update_profile.php', formData);
       
-      if (response.data.success) {
+      if (response.success) {
         setSuccess('Profile updated successfully!');
         setIsEditing(false);
         
         // Update user data in localStorage
-        const updatedUser = { ...user, ...response.data.user };
+        const updatedUser = { ...user, ...response.user };
         localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
+        
+        // Update context user
+        // Note: This would require additional context updates
+        // For simplicity, we'll just reload the user data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
         
         // Reset password fields
         setProfileForm(prev => ({
@@ -174,7 +132,7 @@ function Profile() {
           confirmPassword: ''
         }));
       } else {
-        setError(response.data.message || 'Failed to update profile');
+        setError(response.message || 'Failed to update profile');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -190,26 +148,14 @@ function Profile() {
     }
     
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
+      const response = await post('/users/remove_saved_property.php', { property_id: propertyId });
       
-      const response = await axios.post(
-        'http://localhost/api/users/remove_saved_property.php',
-        { property_id: propertyId },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      if (response.data.success) {
+      if (response.success) {
         // Update saved properties list
         setSavedProperties(savedProperties.filter(prop => prop.id !== propertyId));
         setSuccess('Property removed from saved list');
       } else {
-        setError(response.data.message || 'Failed to remove property');
+        setError(response.message || 'Failed to remove property');
       }
     } catch (err) {
       console.error('Error removing saved property:', err);
@@ -552,5 +498,4 @@ function Profile() {
     </div>
   );
 }
-
 export default Profile;
