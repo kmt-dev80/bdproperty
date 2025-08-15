@@ -1,13 +1,12 @@
 // src/pages/Profile.js
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { Card, Form, Button, Alert, Row, Col, Tabs, Tab, Table, Badge } from 'react-bootstrap';
 import { FaUser, FaHome, FaHeart, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../admin/AuthContext';
 
 function Profile() {
-  const navigate = useNavigate();
-  const { user, loading, get, post, logout } = useAuth();
+  const { user, loading, get, post, uploadFile} = useAuth();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -107,7 +106,7 @@ function Profile() {
         formData.append('profile_image', profileImage);
       }
       
-      const response = await post('/users/update_profile.php', formData);
+      const response = await uploadFile('/users/update_profile.php', formData);
       
       if (response.success) {
         setSuccess('Profile updated successfully!');

@@ -6,7 +6,7 @@ import 'animate.css/animate.min.css';
 import '../assets/css/style.css';
 import '../assets/css/admin.css';
 import '../App.css';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../admin/AuthContext';
 import AdminSidebar from '../admin/components/AdminSidebar';
 import AdminHeader from '../admin/components/AdminHeader';

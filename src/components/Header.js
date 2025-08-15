@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Modal, Form, Alert, NavDropdown } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
@@ -12,7 +12,7 @@ function Header() {
     setShowRegisterModal
   } = useModal();
   
-  const { user, post, loading, login, register, logout } = useAuth();
+  const { user, post, login, register, logout } = useAuth();
   const navigate = useNavigate();
   
   // Form states
@@ -38,24 +38,23 @@ function Header() {
 
 const handleLogout = async () => {
   try {
-    // Use the post method from your AuthContext instead of direct api
     const response = await post('/users/logout.php');
     
     if (response.success) {
-      // Clear client-side auth state
-      logout(); // From your AuthContext
+    
+      logout();
       
       // Show success message
       setSuccess('You have been successfully logged out');
       
-      // Redirect after a short delay
+      
       setTimeout(() => navigate('/'), 1000);
     } else {
       setError(response.message || 'Logout failed');
     }
   } catch (err) {
-    // If API call fails, still clear client-side state
-    logout(); // From your AuthContext
+  
+    logout();
     setError('Logout failed. Please try again.');
     console.error("Logout error:", err);
   }
@@ -152,7 +151,7 @@ const handleLogout = async () => {
         <Container>
           <Navbar.Brand as={Link} to="/" className="fw-bold">
             <i className="fas fa-home me-2"></i>
-            Luxury<span className="text-warning">Homes</span>
+            BD<span className="text-warning">Properties</span>
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="navbarNav" />
           <Navbar.Collapse id="navbarNav">

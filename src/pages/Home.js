@@ -5,7 +5,6 @@ import { useModal } from '../context/ModalContext';
 import TestimonialSlider from '../components/TestimonialSlider';
 import axios from 'axios';
 import Slider from 'react-slick';
-
 function Home() {
   const { setShowListPropertyModal } = useModal();
   
@@ -125,26 +124,26 @@ function Home() {
     // Add price range parameters
     if (searchParams.priceRange !== 'Any') {
       switch (searchParams.priceRange) {
-        case '$500 - $1,000':
-          params.append('minPrice', 500);
-          params.append('maxPrice', 1000);
+        case '৳8000 - ৳15,000':
+          params.append('minPrice', 8000);
+          params.append('maxPrice', 15000);
           break;
-        case '$1,000 - $2,000':
-          params.append('minPrice', 1000);
-          params.append('maxPrice', 2000);
+        case '৳15,000 - ৳20,000':
+          params.append('minPrice', 15000);
+          params.append('maxPrice', 20000);
           break;
-        case '$2,000 - $3,500':
-          params.append('minPrice', 2000);
-          params.append('maxPrice', 3500);
+        case '৳20,000 - ৳30,000':
+          params.append('minPrice', 20000);
+          params.append('maxPrice', 30000);
           break;
-        case '$3,500+':
-          params.append('minPrice', 3500);
+        case '৳30,000+':
+          params.append('minPrice', 30000);
           break;
       }
     }
     
     // Navigate to properties page with search parameters
-    window.location.href = `/properties?${params.toString()}`;
+    window.location.href = `/properties?৳{params.toString()}`;
   };
   
   // Filter properties based on both quick filter and search params
@@ -188,10 +187,10 @@ function Home() {
       const price = property.price;
       const range = searchParams.priceRange;
       
-      if (range === '$500 - $1,000' && (price < 500 || price > 1000)) return false;
-      if (range === '$1,000 - $2,000' && (price < 1000 || price > 2000)) return false;
-      if (range === '$2,000 - $3,500' && (price < 2000 || price > 3500)) return false;
-      if (range === '$3,500+' && price < 3500) return false;
+      if (range === '৳8,000 - ৳15,000' && (price < 8000 || price > 15000)) return false;
+      if (range === '৳15,000 - ৳20,000' && (price < 15000 || price > 20000)) return false;
+      if (range === '৳20,000 - ৳30,000' && (price < 20000 || price > 30000)) return false;
+      if (range === '৳30,000+' && price < 30000) return false;
     }
     
     return true;
@@ -244,6 +243,19 @@ function Home() {
       buttonText: 'Browse Offices'
     }
   ];
+  
+  // Function to get the appropriate badge for a property
+  const getPropertyBadge = (property) => {
+    if (property.featured) {
+      return { text: 'Featured', className: 'bg-danger' };
+    }
+    
+    if (property.type === 'house' || property.type === 'land') {
+      return { text: 'Sale', className: 'bg-primary' };
+    }
+    
+    return { text: 'New', className: 'bg-success' };
+  };
   
   return (
     <>
@@ -298,7 +310,6 @@ function Home() {
                         <option>House</option>
                         <option>Office</option>
                         <option>Store</option>
-                        <option>Villa</option>
                         <option>Land</option>
                       </select>
                     </div>
@@ -344,10 +355,10 @@ function Home() {
                         onChange={handleInputChange}
                       >
                         <option>Any</option>
-                        <option>$500 - $1,000</option>
-                        <option>$1,000 - $2,000</option>
-                        <option>$2,000 - $3,500</option>
-                        <option>$3,500+</option>
+                        <option>৳8000 - ৳15,000</option>
+                        <option>৳15,000 - ৳20,000</option>
+                        <option>৳20,000 - ৳30,000</option>
+                        <option>৳30,000+</option>
                       </select>
                     </div>
                     <div className="col-12">
@@ -439,7 +450,7 @@ function Home() {
               <p className="text-muted">Please check back later for new listings.</p>
             </div>
           )}
-          
+                 
           {/* Properties Grid */}
           {!loading && !error && featuredProperties.length > 0 && (
             <div className="row g-4">
@@ -455,13 +466,20 @@ function Home() {
                         style={{height: '220px', objectFit: 'cover'}}
                       />
                       <div
-                        className={`badge bg-${property.featured ? 'danger' : 'success'} position-absolute top-0 start-0 m-3`}
+                        className={`badge ${getPropertyBadge(property).className} position-absolute top-0 start-0 m-3`}
                       >
-                        {property.featured ? 'Featured' : 'New'}
+                        {getPropertyBadge(property).text}
                       </div>
-                      <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient">
-                        <div className="d-flex justify-content-between text-light">
-                          <span className="fw-bold">${property.price.toLocaleString()}/mo</span>
+                    </div>
+                    <div className="card-body">
+                      {/* Price and bedroom/bathroom info moved here */}
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        {/* Only show price if property type is not 'house' or 'land' */}
+                        {property.type !== 'house' && property.type !== 'land' && (
+                          <span className="fw-bold text-dark">Tk. {property.price.toLocaleString()}/mo</span>
+                        )}
+                        {/* Only show bedroom and bathroom icons if property type is not 'land' or 'store' */}
+                        {property.type !== 'land' && property.type !== 'store' && property.type !== 'office' && (
                           <div>
                             <span className="me-2">
                               <i className="fas fa-bed me-1"></i> {property.bedrooms}
@@ -470,10 +488,9 @@ function Home() {
                               <i className="fas fa-bath me-1"></i> {property.bathrooms}
                             </span>
                           </div>
-                        </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="card-body">
+                      
                       <h5 className="card-title">{property.title}</h5>
                       <p className="card-text text-muted mb-3">
                         <i className="fas fa-map-marker-alt text-danger me-1"></i> {property.address}
@@ -814,5 +831,4 @@ function Home() {
     </>
   );
 }
-
 export default Home;

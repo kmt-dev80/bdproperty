@@ -27,7 +27,8 @@ const EditProperty = () => {
     description: '',
     features: '',
     featured: false,
-    status: 'available'
+    map_link: '',
+    status: ''
   });
   
   const [amenities, setAmenities] = useState([
@@ -65,6 +66,7 @@ const EditProperty = () => {
           description: propertyData.description || '',
           features: propertyData.features || '',
           featured: propertyData.featured || false,
+          map_link: propertyData.map_link || '',
           status: propertyData.status || 'available'
         });
         
@@ -381,6 +383,21 @@ const EditProperty = () => {
                     onChange={handlePropertyChange}
                     required 
                   />
+                </Form.Group>
+              </div>
+              <div className="col-12">
+                <Form.Group controlId="propertyMapLink">
+                  <Form.Label className="fw-medium">Embedded Map Link</Form.Label>
+                  <Form.Control 
+                    type="text"
+                    name="map_link"
+                    value={propertyForm.map_link}
+                    onChange={handlePropertyChange}
+                  />
+                    <Form.Text className="text-muted">
+                      Paste the embed link from Google Maps or other map services. 
+                      To get this link, go to Google Maps, find the location, click "Share", then "Embed a map", and copy the iframe src URL.
+                    </Form.Text>
                 </Form.Group>
               </div>
               

@@ -70,6 +70,12 @@ const AdminSidebar = ({ isOpen, toggleSidebar, user }) => {
               </li>
             </>
           )}
+          <li className="nav-item">
+            <NavLink to="/admin/tour-request" className="nav-link">
+              <FaPlus className="me-2" />
+              See Request
+            </NavLink>
+          </li>
           
           <li className="nav-item mt-auto">
             <button className="nav-link btn btn-link text-start w-100" onClick={handleLogout}>

@@ -20,6 +20,7 @@ const AddProperty = () => {
     description: '',
     features: '',
     featured: false,
+    map_link: '',
     status: 'available'
   });
   
@@ -158,7 +159,6 @@ const AddProperty = () => {
                     <option value="house">House</option>
                     <option value="office">Office</option>
                     <option value="store">Store</option>
-                    <option value="villa">Villa</option>
                     <option value="land">Land</option>
                   </Form.Select>
                 </Form.Group>
@@ -166,9 +166,9 @@ const AddProperty = () => {
               
               <div className="col-md-6">
                 <Form.Group controlId="propertyPrice">
-                  <Form.Label className="fw-medium">Monthly Rent ($)</Form.Label>
+                  <Form.Label className="fw-medium">Monthly Rent (Tk)</Form.Label>
                   <InputGroup>
-                    <InputGroup.Text>$</InputGroup.Text>
+                    <InputGroup.Text>Tk</InputGroup.Text>
                     <Form.Control 
                       type="number" 
                       name="price"
@@ -176,7 +176,6 @@ const AddProperty = () => {
                       onChange={handlePropertyChange}
                       min="0"
                       step="0.01"
-                      required 
                     />
                   </InputGroup>
                 </Form.Group>
@@ -220,7 +219,6 @@ const AddProperty = () => {
                     name="bedrooms"
                     value={propertyForm.bedrooms}
                     onChange={handlePropertyChange}
-                    required
                   >
                     <option value="">Select</option>
                     <option value="1">1</option>
@@ -239,7 +237,6 @@ const AddProperty = () => {
                     name="bathrooms"
                     value={propertyForm.bathrooms}
                     onChange={handlePropertyChange}
-                    required
                   >
                     <option value="">Select</option>
                     <option value="1">1</option>
@@ -257,11 +254,10 @@ const AddProperty = () => {
                     name="status"
                     value={propertyForm.status}
                     onChange={handlePropertyChange}
-                    required
                   >
                     <option value="available">Available</option>
                     <option value="rented">Rented</option>
-                    <option value="maintenance">Maintenance</option>
+                    <option value="sold">Sold</option>
                   </Form.Select>
                 </Form.Group>
               </div>
@@ -304,6 +300,22 @@ const AddProperty = () => {
                     onChange={handlePropertyChange}
                     required 
                   />
+                </Form.Group>
+              </div>
+               <div className="col-12">
+                <Form.Group controlId="propertyMapLink">
+                  <Form.Label className="fw-medium">Embedded Map Link</Form.Label>
+                  <Form.Control 
+                    type="text"
+                    name="map_link"
+                    value={propertyForm.map_link}
+                    onChange={handlePropertyChange}
+                    required 
+                  />
+                   <Form.Text className="text-muted">
+                      Paste the embed link from Google Maps or other map services. 
+                      To get this link, go to Google Maps, find the location, click "Share", then "Embed a map", and copy the iframe src URL.
+                    </Form.Text>
                 </Form.Group>
               </div>
               

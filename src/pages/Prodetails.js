@@ -3,18 +3,15 @@ import { Link, useParams } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../admin/AuthContext'; // Import useAuth
-
 function PropertyDetails() {
   const { id } = useParams();
   const { openListPropertyModal } = useModal();
   const { 
     user, 
     get, 
-    post, 
-    del, 
-    isLoggedIn // Get isLoggedIn from AuthContext instead of managing it locally
-  } = useAuth(); // Destructure needed methods from AuthContext
-
+    post,
+    isLoggedIn 
+  } = useAuth();
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,14 +25,15 @@ function PropertyDetails() {
   
   // Add state for modals
   const [showContactModal, setShowContactModal] = useState(false);
-  const [showTourModal, setShowTourModal] = useState(false);
+  // const [showTourModal, setShowTourModal] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     message: '',
-    tourDate: 'As soon as possible'
+    date: '',
+    time: ''
   });
   
   const renderAmenityIcon = (iconClass) => {
@@ -49,7 +47,6 @@ function PropertyDetails() {
   });
   
   const [showReviewForm, setShowReviewForm] = useState(false);
-
   // Fetch property details and reviews
   useEffect(() => {
     const fetchPropertyDetails = async () => {
@@ -101,7 +98,6 @@ function PropertyDetails() {
       fetchPropertyDetails();
     }
   }, [id, user, isLoggedIn, get]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -109,7 +105,6 @@ function PropertyDetails() {
       [name]: value
     }));
   };
-
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setReviewForm(prev => ({
@@ -117,14 +112,18 @@ function PropertyDetails() {
       [name]: value
     }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
       const response = await post('/message/tour-request.php', {
         propertyId: id,
-        ...formData
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message,
+        date: formData.date,
+        time: formData.time  
       });
       
       if (response && response.success === true) {
@@ -134,9 +133,10 @@ function PropertyDetails() {
           email: '',
           phone: '',
           message: '',
-          tourDate: 'As soon as possible'
+          date: '',
+          time: ''
         });
-        setShowTourModal(false);
+        // setShowTourModal(false);
       } else {
         alert('Failed to submit tour request: ' + response.message);
       }
@@ -144,7 +144,6 @@ function PropertyDetails() {
       alert('Failed to submit tour request. Please try again.');
     }
   };
-
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     
@@ -187,7 +186,6 @@ function PropertyDetails() {
       alert('Failed to submit review. Please try again.');
     }
   };
-
   const toggleSave = async () => {
     if (!isLoggedIn) {
       alert('Please log in to save properties.');
@@ -213,7 +211,6 @@ function PropertyDetails() {
       alert('An error occurred while updating saved property');
     }
   };
-
   const handleDeleteProperty = async () => {
     if (!showDeleteConfirm) {
       setShowDeleteConfirm(true);
@@ -307,6 +304,11 @@ function PropertyDetails() {
     );
   }
   
+  // Determine what to show based on property type
+  const showPrice = property.type !== 'house' && property.type !== 'land';
+  const showBedBath = property.type !== 'land' && property.type !== 'store' && property.type !== 'office';
+  const showAmenity = property.type !== 'store' && property.type !== 'office';
+  
   return (
     <>
       {/* Property Header */}
@@ -339,9 +341,12 @@ function PropertyDetails() {
             </div>
             <div className="col-lg-4">
               <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-3 p-4">
-                <h2 className="text-white fw-bold mb-3">
-                  ${property.price.toLocaleString()}/mo
-                </h2>
+                {/* Only show price if property type is not 'house' or 'land' */}
+                {showPrice && (
+                  <h2 className="text-white fw-bold mb-3">
+                    ${property.price.toLocaleString()}/mo
+                  </h2>
+                )}
                 <div className="d-grid gap-2" style={{ position: 'relative', zIndex: 1000 }}>
                   {isOwner && (
                     <div className="d-flex gap-2 mb-2">
@@ -397,15 +402,21 @@ function PropertyDetails() {
                   />
                   <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient-to-t from-black to-transparent">
                     <div className="d-flex justify-content-between text-white">
-                      <span className="fw-bold fs-5">${property.price.toLocaleString()}/mo</span>
-                      <div>
-                        <span className="me-2">
-                          <i className="fas fa-bed me-1"></i> {property.bedrooms}
-                        </span>
-                        <span>
-                          <i className="fas fa-bath me-1"></i> {property.bathrooms}
-                        </span>
-                      </div>
+                      {/* Only show price if property type is not 'house' or 'land' */}
+                      {showPrice && (
+                        <span className="fw-bold fs-5">${property.price.toLocaleString()}/mo</span>
+                      )}
+                      {/* Only show bedroom and bathroom icons if property type is not 'land', 'store', or 'office' */}
+                      {showBedBath && (
+                        <div>
+                          <span className="me-2">
+                            <i className="fas fa-bed me-1"></i> {property.bedrooms}
+                          </span>
+                          <span>
+                            <i className="fas fa-bath me-1"></i> {property.bathrooms}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -456,24 +467,30 @@ function PropertyDetails() {
       <section className="property-quick-info py-4 bg-light">
         <div className="container">
           <div className="row g-4">
-            <div className="col-6 col-md-3">
-              <div className="bg-white rounded-3 p-4 text-center h-100 shadow-sm">
-                <div className="text-primary fs-2 mb-2">
-                  <i className="fas fa-bed"></i>
+            {/* Only show bedrooms if property type is not 'land', 'store', or 'office' */}
+            {showBedBath && (
+              <div className="col-6 col-md-3">
+                <div className="bg-white rounded-3 p-4 text-center h-100 shadow-sm">
+                  <div className="text-primary fs-2 mb-2">
+                    <i className="fas fa-bed"></i>
+                  </div>
+                  <h5 className="mb-1">Bedrooms</h5>
+                  <p className="mb-0 fw-bold">{property.bedrooms}</p>
                 </div>
-                <h5 className="mb-1">Bedrooms</h5>
-                <p className="mb-0 fw-bold">{property.bedrooms}</p>
               </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="bg-white rounded-3 p-4 text-center h-100 shadow-sm">
-                <div className="text-primary fs-2 mb-2">
-                  <i className="fas fa-bath"></i>
+            )}
+            {/* Only show bathrooms if property type is not 'land', 'store', or 'office' */}
+            {showBedBath && (
+              <div className="col-6 col-md-3">
+                <div className="bg-white rounded-3 p-4 text-center h-100 shadow-sm">
+                  <div className="text-primary fs-2 mb-2">
+                    <i className="fas fa-bath"></i>
+                  </div>
+                  <h5 className="mb-1">Bathrooms</h5>
+                  <p className="mb-0 fw-bold">{property.bathrooms}</p>
                 </div>
-                <h5 className="mb-1">Bathrooms</h5>
-                <p className="mb-0 fw-bold">{property.bathrooms}</p>
               </div>
-            </div>
+            )}
             <div className="col-6 col-md-3">
               <div className="bg-white rounded-3 p-4 text-center h-100 shadow-sm">
                 <div className="text-primary fs-2 mb-2">
@@ -713,16 +730,36 @@ function PropertyDetails() {
                     Location
                     <span className="position-absolute bottom-0 start-0 w-25 h-1 bg-primary rounded"></span>
                   </h3>
-                  <div className="ratio ratio-16x9 mb-4 rounded-3 overflow-hidden">
-                    <iframe 
-                      src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(property.address)}`}
-                      allowFullScreen="" 
-                      loading="lazy" 
-                      referrerPolicy="no-referrer-when-downgrade"
-                      className="border-0"
-                    ></iframe>
-                  </div>
                   
+                  {property.map_link ? (
+                    // If map_link exists, use it directly in the iframe
+                    <div className="ratio ratio-16x9 mb-4 rounded-3 overflow-hidden">
+                      <iframe 
+                        src={property.map_link}
+                        allowFullScreen="" 
+                        loading="lazy" 
+                        referrerPolicy="no-referrer-when-downgrade"
+                        className="border-0"
+                        title="Property Location Map"
+                        style={{ 
+                          border: '0', 
+                          width: '100%', 
+                          height: '100%'
+                        }}
+                      ></iframe>
+                    </div>
+                  ) : (
+                     // Show a placeholder or message when no map is available
+                    <div className="ratio ratio-16x9 mb-4 rounded-3 bg-light d-flex align-items-center justify-content-center">
+                      <div className="text-center p-4">
+                        <i className="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+                        <p className="text-muted">No map available for this property</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {showAmenity && (
+                  <>
                   <h5 className="mb-3">Nearby Amenities</h5>
                   {property.amenities && property.amenities.length > 0 ? (
                     <div className="row">
@@ -763,6 +800,8 @@ function PropertyDetails() {
                     </div>
                   ) : (
                     <p className="text-muted">No amenities information available.</p>
+                  )}
+                  </>
                   )}
                 </div>
               </div>
@@ -821,16 +860,26 @@ function PropertyDetails() {
                       ></textarea>
                     </div>
                     <div className="mb-4">
-                      <select 
-                        className="form-select"
-                        name="tourDate"
-                        value={formData.tourDate}
+                      <input 
+                        type="date" 
+                        className="form-control" 
+                        placeholder="date" 
+                        name="date"
+                        value={formData.date}
                         onChange={handleInputChange}
-                      >
-                        <option value="As soon as possible">As soon as possible</option>
-                        <option value="Within a week">Within a week</option>
-                        <option value="Within a month">Within a month</option>
-                      </select>
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Time: (am/pm)" 
+                        name="time"
+                        value={formData.time}
+                        onChange={handleInputChange}
+                        required
+                      />
                     </div>
                     <button type="submit" className="btn btn-primary w-100 py-3 fw-bold">Schedule Tour</button>
                   </form>
@@ -849,22 +898,31 @@ function PropertyDetails() {
                       <span className="text-muted">Property ID</span>
                       <span className="fw-bold">LH-{property.id.toString().padStart(4, '0')}</span>
                     </li>
-                    <li className="d-flex justify-content-between py-3 border-bottom">
-                      <span className="text-muted">Price</span>
-                      <span className="fw-bold">${property.price.toLocaleString()}/mo</span>
-                    </li>
+                    {/* Only show price if property type is not 'house' or 'land' */}
+                    {showPrice && (
+                      <li className="d-flex justify-content-between py-3 border-bottom">
+                        <span className="text-muted">Price</span>
+                        <span className="fw-bold">${property.price.toLocaleString()}/mo</span>
+                      </li>
+                    )}
                     <li className="d-flex justify-content-between py-3 border-bottom">
                       <span className="text-muted">Property Size</span>
                       <span className="fw-bold">{property.area} sq ft</span>
                     </li>
-                    <li className="d-flex justify-content-between py-3 border-bottom">
-                      <span className="text-muted">Bedrooms</span>
-                      <span className="fw-bold">{property.bedrooms}</span>
-                    </li>
-                    <li className="d-flex justify-content-between py-3 border-bottom">
-                      <span className="text-muted">Bathrooms</span>
-                      <span className="fw-bold">{property.bathrooms}</span>
-                    </li>
+                    {/* Only show bedrooms if property type is not 'land', 'store', or 'office' */}
+                    {showBedBath && (
+                      <li className="d-flex justify-content-between py-3 border-bottom">
+                        <span className="text-muted">Bedrooms</span>
+                        <span className="fw-bold">{property.bedrooms}</span>
+                      </li>
+                    )}
+                    {/* Only show bathrooms if property type is not 'land', 'store', or 'office' */}
+                    {showBedBath && (
+                      <li className="d-flex justify-content-between py-3 border-bottom">
+                        <span className="text-muted">Bathrooms</span>
+                        <span className="fw-bold">{property.bathrooms}</span>
+                      </li>
+                    )}
                     <li className="d-flex justify-content-between py-3">
                       <span className="text-muted">Year Built</span>
                       <span className="fw-bold">{property.year_built || 'N/A'}</span>
@@ -921,50 +979,62 @@ function PropertyDetails() {
               <Link to="/properties" className="btn btn-outline-primary">View All</Link>
             </div>
             <div className="row g-4">
-              {property.similar_properties.map(similar => (
-                <div className="col-md-6 col-lg-4" key={similar.id}>
-                  <div className="card property-card h-100 border-0 shadow-sm overflow-hidden transition-transform duration-300 hover-shadow-lg">
-                    <div className="position-relative">
-                      <img 
-                        src={similar.image} 
-                        className="card-img-top" 
-                        alt={similar.title}
-                        style={{ height: '220px', objectFit: 'cover' }}
-                      />
-                      <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient-to-t from-black to-transparent">
-                        <div className="d-flex justify-content-between text-white">
-                          <span className="fw-bold">${similar.price.toLocaleString()}/mo</span>
-                          <div>
-                            <span className="me-2">
-                              <i className="fas fa-bed me-1"></i> {similar.bedrooms}
-                            </span>
-                            <span>
-                              <i className="fas fa-bath me-1"></i> {similar.bathrooms}
-                            </span>
+              {property.similar_properties.map(similar => {
+                // Determine what to show for similar properties based on type
+                const similarShowPrice = similar.type !== 'house' && similar.type !== 'land';
+                const similarShowBedBath = similar.type !== 'land' && similar.type !== 'store' && similar.type !== 'office';
+                
+                return (
+                  <div className="col-md-6 col-lg-4" key={similar.id}>
+                    <div className="card property-card h-100 border-0 shadow-sm overflow-hidden transition-transform duration-300 hover-shadow-lg">
+                      <div className="position-relative">
+                        <img 
+                          src={similar.image} 
+                          className="card-img-top" 
+                          alt={similar.title}
+                          style={{ height: '220px', objectFit: 'cover' }}
+                        />
+                        <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient-to-t from-black to-transparent">
+                          <div className="d-flex justify-content-between text-white">
+                            {/* Only show price if property type is not 'house' or 'land' */}
+                            {similarShowPrice && (
+                              <span className="fw-bold">${similar.price.toLocaleString()}/mo</span>
+                            )}
+                            {/* Only show bedroom and bathroom icons if property type is not 'land', 'store', or 'office' */}
+                            {similarShowBedBath && (
+                              <div>
+                                <span className="me-2">
+                                  <i className="fas fa-bed me-1"></i> {similar.bedrooms}
+                                </span>
+                                <span>
+                                  <i className="fas fa-bath me-1"></i> {similar.bathrooms}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="card-body">
-                      <h5 className="card-title">{similar.title}</h5>
-                      <p className="card-text text-muted mb-3">
-                        <i className="fas fa-map-marker-alt text-danger me-1"></i> {similar.address}
-                      </p>
-                      <div className="d-flex justify-content-between align-items-center mt-3">
-                        <span className="badge bg-dark">
-                          {similar.type.charAt(0).toUpperCase() + similar.type.slice(1)}
-                        </span>
-                        <Link 
-                          to={`/property/${similar.id}`} 
-                          className="btn btn-sm btn-warning"
-                        >
-                          View Details <i className="fas fa-arrow-right ms-1"></i>
-                        </Link>
+                      <div className="card-body">
+                        <h5 className="card-title">{similar.title}</h5>
+                        <p className="card-text text-muted mb-3">
+                          <i className="fas fa-map-marker-alt text-danger me-1"></i> {similar.address}
+                        </p>
+                        <div className="d-flex justify-content-between align-items-center mt-3">
+                          <span className="badge bg-dark">
+                            {similar.type.charAt(0).toUpperCase() + similar.type.slice(1)}
+                          </span>
+                          <Link 
+                            to={`/property/${similar.id}`} 
+                            className="btn btn-sm btn-warning"
+                          >
+                            View Details <i className="fas fa-arrow-right ms-1"></i>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -999,81 +1069,7 @@ function PropertyDetails() {
           </form>
         </Modal.Body>
       </Modal>
-      
-      {/* Tour Request Modal - React Bootstrap Modal */}
-      <Modal show={showTourModal} onHide={() => setShowTourModal(false)}>
-        <Modal.Header closeButton className="bg-primary text-white">
-          <Modal.Title>Request a Tour</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label className="form-label fw-medium">Your Name</label>
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="Your Name" 
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-medium">Your Email</label>
-              <input 
-                type="email" 
-                className="form-control" 
-                placeholder="Your Email" 
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-medium">Phone Number</label>
-              <input 
-                type="tel" 
-                className="form-control" 
-                placeholder="Phone Number"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-medium">Message</label>
-              <textarea 
-                className="form-control" 
-                rows="3" 
-                placeholder="Message"
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-              ></textarea>
-            </div>
-            <div className="mb-4">
-              <label className="form-label fw-medium">Preferred Tour Date</label>
-              <select 
-                className="form-select"
-                name="tourDate"
-                value={formData.tourDate}
-                onChange={handleInputChange}
-              >
-                <option value="As soon as possible">As soon as possible</option>
-                <option value="Within a week">Within a week</option>
-                <option value="Within a month">Within a month</option>
-              </select>
-            </div>
-            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold">
-              Schedule Tour
-            </Button>
-          </form>
-        </Modal.Body>
-      </Modal>
     </>
   );
 }
-
 export default PropertyDetails;

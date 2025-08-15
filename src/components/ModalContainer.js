@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, InputGroup, Alert, Row, Col } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
-import { useAuth, uploadApi } from '../admin/AuthContext';
+import { useAuth} from '../admin/AuthContext';
 
 const ModalContainer = () => {
   const { showListPropertyModal, setShowListPropertyModal, editingProperty, setEditingProperty } = useModal();
-  const { user, post, del, uploadFile } = useAuth();
+  const { user, del, uploadFile } = useAuth();
   
   // Determine if we're in edit mode
   const isEditMode = editingProperty && editingProperty.id;
   
-  // Form state with all fields
+  // Form state with all fields (including map_link)
   const [propertyForm, setPropertyForm] = useState({
     title: '',
     type: '',
@@ -24,6 +24,7 @@ const ModalContainer = () => {
     description: '',
     features: '',
     featured: false,
+    map_link: '', // Added map_link field
     images: []
   });
   
@@ -45,7 +46,7 @@ const ModalContainer = () => {
   // Load property data when editing
   useEffect(() => {
     if (isEditMode && editingProperty) {
-      // Populate form with property data
+      // Populate form with property data (including map_link)
       setPropertyForm({
         title: editingProperty.title || '',
         type: editingProperty.type || '',
@@ -59,10 +60,11 @@ const ModalContainer = () => {
         description: editingProperty.description || '',
         features: editingProperty.features || '',
         featured: editingProperty.featured || false,
+        map_link: editingProperty.map_link || '', // Added map_link field
         images: []
       });
       
-      // Load amenities if they exist
+      // Load amenities if they exist (unchanged)
       if (editingProperty.amenities && Array.isArray(editingProperty.amenities) && editingProperty.amenities.length > 0) {
         const updatedAmenities = [...amenities];
         
@@ -85,7 +87,7 @@ const ModalContainer = () => {
         setAmenities(updatedAmenities);
       }
     } else {
-      // Reset form when not in edit mode
+      // Reset form when not in edit mode (including map_link)
       setPropertyForm({
         title: '',
         type: '',
@@ -99,10 +101,11 @@ const ModalContainer = () => {
         description: '',
         features: '',
         featured: false,
+        map_link: '', // Added map_link field
         images: []
       });
       
-      // Reset amenities
+      // Reset amenities (unchanged)
       setAmenities([
         { text: 'School', icon: 'fa-school', distance: '' },
         { text: 'Hospital', icon: 'fa-hospital', distance: '' },
@@ -113,7 +116,7 @@ const ModalContainer = () => {
       ]);
     }
     
-    // Reset other states
+    // Reset other states (unchanged)
     setError('');
     setSuccess('');
     setDeleteConfirm(false);
@@ -149,80 +152,81 @@ const ModalContainer = () => {
   };
   
   const handlePropertySubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setError('');
-  setSuccess('');
-
-  if (!user) {
-    setError('You must be logged in to list a property');
-    setIsSubmitting(false);
-    return;
-  }
-
-  try {
-    const formData = new FormData();
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    setSuccess('');
     
-    // Append all form fields
-    formData.append('title', propertyForm.title);
-    formData.append('type', propertyForm.type);
-    formData.append('price', propertyForm.price);
-    formData.append('area', propertyForm.area || '');
-    formData.append('bedrooms', propertyForm.bedrooms);
-    formData.append('bathrooms', propertyForm.bathrooms);
-    formData.append('year', propertyForm.year || '');
-    formData.append('address', propertyForm.address);
-    formData.append('location', propertyForm.location);
-    formData.append('description', propertyForm.description);
-    formData.append('features', propertyForm.features || '');
-    formData.append('featured', propertyForm.featured ? '1' : '0');
-
-    // Add property ID if in edit mode
-    if (isEditMode) {
-      formData.append('property_id', editingProperty.id);
+    if (!user) {
+      setError('You must be logged in to list a property');
+      setIsSubmitting(false);
+      return;
     }
-
-    // Append amenities as JSON string
-    const amenitiesWithDistance = amenities.filter(amenity => amenity.distance && amenity.distance.trim() !== '');
-    formData.append('amenities', JSON.stringify(amenitiesWithDistance));
-
-    // Append files
-    if (propertyForm.images && propertyForm.images.length > 0) {
-      propertyForm.images.forEach((file, index) => {
-        formData.append(`images[${index}]`, file);
-      });
-    }
-
-    const endpoint = isEditMode 
-      ? 'properties/update_property.php'
-      : 'properties/add_property.php';
-
-    // Use uploadApi for file uploads
-    const response = await uploadFile(endpoint, formData);
-
-    if (response.success) {
-      const successMessage = isEditMode 
-        ? 'Property updated successfully!' 
-        : 'Property listed successfully!';
-        
-      setSuccess(successMessage);
+    
+    try {
+      const formData = new FormData();
       
-      setTimeout(() => {
-        setShowListPropertyModal(false);
-        setEditingProperty(null);
-        setSuccess('');
-        window.location.reload();
-      }, 2000);
-    } else {
-      setError(response.message || 'Property operation failed');
+      // Append all form fields (including map_link)
+      formData.append('title', propertyForm.title);
+      formData.append('type', propertyForm.type);
+      formData.append('price', propertyForm.price);
+      formData.append('area', propertyForm.area || '');
+      formData.append('bedrooms', propertyForm.bedrooms);
+      formData.append('bathrooms', propertyForm.bathrooms);
+      formData.append('year', propertyForm.year || '');
+      formData.append('address', propertyForm.address);
+      formData.append('location', propertyForm.location);
+      formData.append('description', propertyForm.description);
+      formData.append('features', propertyForm.features || '');
+      formData.append('featured', propertyForm.featured ? '1' : '0');
+      formData.append('map_link', propertyForm.map_link || ''); // Added map_link field
+      
+      // Add property ID if in edit mode
+      if (isEditMode) {
+        formData.append('property_id', editingProperty.id);
+      }
+      
+      // Append amenities as JSON string (unchanged)
+      const amenitiesWithDistance = amenities.filter(amenity => amenity.distance && amenity.distance.trim() !== '');
+      formData.append('amenities', JSON.stringify(amenitiesWithDistance));
+      
+      // Append files (unchanged)
+      if (propertyForm.images && propertyForm.images.length > 0) {
+        propertyForm.images.forEach((file, index) => {
+          formData.append(`images[${index}]`, file);
+        });
+      }
+      
+      const endpoint = isEditMode 
+        ? 'properties/update_property.php'
+        : 'properties/add_property.php';
+      
+      // Use uploadApi for file uploads (unchanged)
+      const response = await uploadFile(endpoint, formData);
+      
+      if (response.success) {
+        const successMessage = isEditMode 
+          ? 'Property updated successfully!' 
+          : 'Property listed successfully!';
+          
+        setSuccess(successMessage);
+        
+        setTimeout(() => {
+          setShowListPropertyModal(false);
+          setEditingProperty(null);
+          setSuccess('');
+          window.location.reload();
+        }, 2000);
+      } else {
+        setError(response.message || 'Property operation failed');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err.response?.data?.message || 'An error occurred while processing your property');
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (err) {
-    console.error('Error:', err);
-    setError(err.response?.data?.message || 'An error occurred while processing your property');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
   
   const handleDeleteProperty = async () => {
     if (!deleteConfirm) {
@@ -463,6 +467,24 @@ const ModalContainer = () => {
               </Form.Group>
             </div>
             
+            {/* New Map Link Field */}
+            <div className="col-12">
+              <Form.Group controlId="propertyMapLink">
+                <Form.Label className="fw-medium">Embedded Map Link</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  name="map_link"
+                  value={propertyForm.map_link}
+                  onChange={handlePropertyChange}
+                  placeholder="https://www.google.com/maps/embed?..." 
+                />
+                <Form.Text className="text-muted">
+                  Paste the embed link from Google Maps or other map services. 
+                  To get this link, go to Google Maps, find the location, click "Share", then "Embed a map", and copy the iframe src URL.
+                </Form.Text>
+              </Form.Group>
+            </div>
+            
             <div className="col-12">
               <Form.Group controlId="propertyDescription">
                 <Form.Label className="fw-medium">Description</Form.Label>
@@ -552,22 +574,22 @@ const ModalContainer = () => {
                 
                 <Button 
                   variant="primary" 
-                    type="submit" 
-                    className="flex-grow-1 py-3 fw-bold shadow-sm"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting 
-                      ? (isEditMode ? 'Updating...' : 'Submitting...') 
-                      : (isEditMode ? 'Update Property' : 'Submit Property Listing')
-                    }
-                  </Button>
-                </div>
+                  type="submit" 
+                  className="flex-grow-1 py-3 fw-bold shadow-sm"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting 
+                    ? (isEditMode ? 'Updating...' : 'Submitting...') 
+                    : (isEditMode ? 'Update Property' : 'Submit Property Listing')
+                  }
+                </Button>
               </div>
             </div>
-          </Form>
-        </Modal.Body>
-      </Modal>
-    );
-  };
-  
-  export default ModalContainer;
+          </div>
+        </Form>
+      </Modal.Body>
+    </Modal>
+  );
+};
+
+export default ModalContainer;

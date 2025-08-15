@@ -42,7 +42,7 @@ function Footer() {
                         <div className="col-lg-4 mb-4 mb-lg-0">
                             <div className="footer-brand d-flex align-items-center mb-3">
                                 <i className="fas fa-home fa-2x text-warning me-2"></i>
-                                <span className="h3 mb-0 fw-bold">Luxury<span className="text-warning">Homes</span></span>
+                                <span className="h3 mb-0 fw-bold">BD<span className="text-warning">Properties</span></span>
                             </div>
                             <p className="text-white mb-4">Your trusted partner in finding and managing premium properties since 2010.</p>
                             
@@ -64,11 +64,11 @@ function Footer() {
                             <div className="contact-info">
                                 <div className="d-flex mb-2">
                                     <i className="fas fa-phone-alt text-warning me-2 mt-1"></i>
-                                    <span className="text-white">(212) 555-1234</span>
+                                    <span className="text-white">(+880) 1319028680</span>
                                 </div>
                                 <div className="d-flex">
                                     <i className="fas fa-envelope text-warning me-2 mt-1"></i>
-                                    <span className="text-white">info@luxuryhomes.com</span>
+                                    <span className="text-white">info@bdroperties.com</span>
                                 </div>
                             </div>
                         </div>
@@ -136,7 +136,7 @@ function Footer() {
                     
                     <div className="row align-items-center">
                         <div className="col-md-6 mb-3 mb-md-0">
-                            <p className="text-white mb-0">&copy; 2025 LuxuryHomes. All rights reserved.</p>
+                            <p className="text-white mb-0">&copy; 2025 BDProperties. All rights reserved.</p>
                         </div>
                         <div className="col-md-6 text-md-end">
                             <ul className="list-inline mb-0">

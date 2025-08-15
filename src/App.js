@@ -21,6 +21,7 @@ import AdminProperties from './admin/pages/Properties';
 import AddProperty from './admin/pages/AddProperty';
 import EditProperty from './admin/pages/EditProperty';
 import Users from './admin/pages/Users';
+import TourRequest from './admin/pages/TourRequest'
 import { ModalProvider } from './context/ModalContext';
 import ModalContainer from './components/ModalContainer';
 
@@ -49,6 +50,7 @@ function AppRoutes() {
         <Route path="add-property" element={<AddProperty />} />
         <Route path="edit-property/:id" element={<EditProperty />} />
         <Route path="users" element={<Users />} />
+        <Route path="tour-request" element={<TourRequest />} />
       </Route>
 
       {/* Fallback */}

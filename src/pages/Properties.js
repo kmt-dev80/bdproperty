@@ -30,23 +30,27 @@ function Properties() {
         // Add price range parameters
         if (filterPrice !== 'all') {
           switch (filterPrice) {
-            case '0-1000':
+            case '0-15000':
               params.append('minPrice', 0);
-              params.append('maxPrice', 1000);
+              params.append('maxPrice', 14999); // prevent overlap
               break;
-            case '1000-2500':
-              params.append('minPrice', 1000);
-              params.append('maxPrice', 2500);
+            case '15000-20000':
+              params.append('minPrice', 15000);
+              params.append('maxPrice', 19999);
               break;
-            case '2500-5000':
-              params.append('minPrice', 2500);
-              params.append('maxPrice', 5000);
+            case '20000-30000':
+              params.append('minPrice', 20000);
+              params.append('maxPrice', 29999);
               break;
-            case '5000+':
-              params.append('minPrice', 5000);
+            case '30000+':
+              params.append('minPrice', 30000);
+              break;
+            default:
+              // No price filter
               break;
           }
         }
+
         
         // Add sort parameter
         params.append('sort', sortOption);
@@ -116,6 +120,20 @@ function Properties() {
   const handleImageError = (e, propertyId) => {
     e.target.src = 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   };
+
+  
+  // Function to get the appropriate badge for a property
+  const getPropertyBadge = (property) => {
+    if (property.featured) {
+      return { text: 'Featured', className: 'bg-danger' };
+    }
+    
+    if (property.type === 'house' || property.type === 'land') {
+      return { text: 'Sale', className: 'bg-primary' };
+    }
+    
+    return { text: 'New', className: 'bg-success' };
+  };
   
   return (
     <>
@@ -147,7 +165,6 @@ function Properties() {
                 <option value="all">Property Type</option>
                 <option value="apartment">Apartment</option>
                 <option value="house">House</option>
-                <option value="villa">Villa</option>
                 <option value="office">Office</option>
                 <option value="store">Store</option>
                 <option value="land">Land</option>
@@ -178,10 +195,10 @@ function Properties() {
                 }}
               >
                 <option value="all">Price Range</option>
-                <option value="0-1000">$0 - $1,000</option>
-                <option value="1000-2500">$1,000 - $2,500</option>
-                <option value="2500-5000">$2,500 - $5,000</option>
-                <option value="5000+">$5,000+</option>
+                <option value="0-15000">৳0 - ৳15,000</option>
+                <option value="15000-20000">৳15,000 - ৳20,000</option>
+                <option value="20000-30000">৳20,000 - ৳30,000</option>
+                <option value="30000+">৳30,000+</option>
               </select>
             </div>
             <div className="col-md-3">
@@ -270,13 +287,20 @@ function Properties() {
                         style={{height: '200px', objectFit: 'cover'}}
                       />
                       <div
-                        className={`badge bg-${property.featured ? 'danger' : 'success'} position-absolute top-0 start-0 m-3`}
+                        className={`badge ${getPropertyBadge(property).className} position-absolute top-0 start-0 m-3`}
                       >
-                        {property.featured ? 'Featured' : 'New'}
+                        {getPropertyBadge(property).text}
                       </div>
-                      <div className="position-absolute bottom-0 start-0 end-0 p-3 bg-gradient">
-                        <div className="d-flex justify-content-between text-white">
-                          <span className="fw-bold">${property.price.toLocaleString()}/mo</span>
+                    </div>
+                    <div className="card-body">
+                       {/* Price and bedroom/bathroom info moved here */}
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        {/* Only show price if property type is not 'house' or 'land' */}
+                        {property.type !== 'house' && property.type !== 'land' && (
+                          <span className="fw-bold text-dark">Tk. {property.price.toLocaleString()}/mo</span>
+                        )}
+                        {/* Only show bedroom and bathroom icons if property type is not 'land' or 'store' */}
+                        {property.type !== 'land' && property.type !== 'store' && property.type !== 'office' && (
                           <div>
                             <span className="me-2">
                               <i className="fas fa-bed me-1"></i> {property.bedrooms}
@@ -285,10 +309,8 @@ function Properties() {
                               <i className="fas fa-bath me-1"></i> {property.bathrooms}
                             </span>
                           </div>
-                        </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="card-body">
                       <h5 className="card-title">{property.title}</h5>
                       <p className="card-text text-muted mb-3">
                         <i className="fas fa-map-marker-alt text-danger me-1"></i> {property.address}
