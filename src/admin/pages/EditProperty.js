@@ -171,9 +171,9 @@ const EditProperty = () => {
         setSuccess('Property updated successfully!');
         
         // Redirect to properties page after a short delay
-        setTimeout(() => {
-          navigate('/admin/properties');
-        }, 2000);
+        // setTimeout(() => {
+        //   navigate('/admin/properties');
+        // }, 2000);
       } else {
         setError(response.message || 'Failed to update property');
       }
@@ -299,7 +299,6 @@ const EditProperty = () => {
                     name="bedrooms"
                     value={propertyForm.bedrooms}
                     onChange={handlePropertyChange}
-                    required
                   >
                     <option value="">Select</option>
                     <option value="1">1</option>
@@ -318,7 +317,6 @@ const EditProperty = () => {
                     name="bathrooms"
                     value={propertyForm.bathrooms}
                     onChange={handlePropertyChange}
-                    required
                   >
                     <option value="">Select</option>
                     <option value="1">1</option>

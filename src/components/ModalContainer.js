@@ -46,7 +46,6 @@ const ModalContainer = () => {
   // Load property data when editing
   useEffect(() => {
     if (isEditMode && editingProperty) {
-      // Populate form with property data (including map_link)
       setPropertyForm({
         title: editingProperty.title || '',
         type: editingProperty.type || '',
@@ -60,34 +59,38 @@ const ModalContainer = () => {
         description: editingProperty.description || '',
         features: editingProperty.features || '',
         featured: editingProperty.featured || false,
-        map_link: editingProperty.map_link || '', // Added map_link field
+        map_link: editingProperty.map_link || '',
         images: []
       });
-      
-      // Load amenities if they exist (unchanged)
-      if (editingProperty.amenities && Array.isArray(editingProperty.amenities) && editingProperty.amenities.length > 0) {
-        const updatedAmenities = [...amenities];
-        
-        editingProperty.amenities.forEach(propAmenity => {
-          if (propAmenity && propAmenity.amenity_name) {
-            const index = updatedAmenities.findIndex(a => 
-              a && a.text && propAmenity.amenity_name && 
-              a.text.toLowerCase() === propAmenity.amenity_name.toLowerCase()
-            );
-            
-            if (index !== -1) {
-              updatedAmenities[index] = {
-                ...updatedAmenities[index],
-                distance: propAmenity.distance || ''
-              };
+
+      if (
+        editingProperty.amenities &&
+        Array.isArray(editingProperty.amenities) &&
+        editingProperty.amenities.length > 0
+      ) {
+        setAmenities(prevAmenities => {
+          const updatedAmenities = [...prevAmenities];
+          editingProperty.amenities.forEach(propAmenity => {
+            if (propAmenity && propAmenity.amenity_name) {
+              const index = updatedAmenities.findIndex(
+                a =>
+                  a &&
+                  a.text &&
+                  propAmenity.amenity_name &&
+                  a.text.toLowerCase() === propAmenity.amenity_name.toLowerCase()
+              );
+              if (index !== -1) {
+                updatedAmenities[index] = {
+                  ...updatedAmenities[index],
+                  distance: propAmenity.distance || ''
+                };
+              }
             }
-          }
+          });
+          return updatedAmenities;
         });
-        
-        setAmenities(updatedAmenities);
       }
     } else {
-      // Reset form when not in edit mode (including map_link)
       setPropertyForm({
         title: '',
         type: '',
@@ -101,11 +104,10 @@ const ModalContainer = () => {
         description: '',
         features: '',
         featured: false,
-        map_link: '', // Added map_link field
+        map_link: '',
         images: []
       });
-      
-      // Reset amenities (unchanged)
+
       setAmenities([
         { text: 'School', icon: 'fa-school', distance: '' },
         { text: 'Hospital', icon: 'fa-hospital', distance: '' },
@@ -115,12 +117,12 @@ const ModalContainer = () => {
         { text: 'Public Transport', icon: 'fa-bus', distance: '' }
       ]);
     }
-    
-    // Reset other states (unchanged)
+
     setError('');
     setSuccess('');
     setDeleteConfirm(false);
   }, [isEditMode, editingProperty]);
+
   
   const handlePropertyChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -353,7 +355,6 @@ const ModalContainer = () => {
                     onChange={handlePropertyChange}
                     min="0"
                     step="0.01"
-                    required 
                   />
                 </InputGroup>
               </Form.Group>
@@ -397,7 +398,6 @@ const ModalContainer = () => {
                   name="bedrooms"
                   value={propertyForm.bedrooms}
                   onChange={handlePropertyChange}
-                  required
                 >
                   <option value="">Select</option>
                   <option value="1">1</option>
@@ -416,7 +416,6 @@ const ModalContainer = () => {
                   name="bathrooms"
                   value={propertyForm.bathrooms}
                   onChange={handlePropertyChange}
-                  required
                 >
                   <option value="">Select</option>
                   <option value="1">1</option>

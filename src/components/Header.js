@@ -28,7 +28,7 @@ function Header() {
     phone: '',
     password: '',
     confirmPassword: '',
-    userType: 'tenant',
+    userType: 'user',
     terms: false
   });
   
@@ -373,6 +373,16 @@ const handleLogout = async () => {
                   inline
                   type="radio" 
                   name="userType"
+                  id="user"
+                  value="user"
+                  checked={registerForm.userType === 'user'}
+                  onChange={handleRegisterChange}
+                  label="User" 
+                />
+                <Form.Check 
+                  inline
+                  type="radio" 
+                  name="userType"
                   id="tenant"
                   value="tenant"
                   checked={registerForm.userType === 'tenant'}
@@ -388,16 +398,6 @@ const handleLogout = async () => {
                   checked={registerForm.userType === 'landlord'}
                   onChange={handleRegisterChange}
                   label="Landlord" 
-                />
-                <Form.Check 
-                  inline
-                  type="radio" 
-                  name="userType"
-                  id="user"
-                  value="user"
-                  checked={registerForm.userType === 'user'}
-                  onChange={handleRegisterChange}
-                  label="User" 
                 />
               </div>
             </Form.Group>
