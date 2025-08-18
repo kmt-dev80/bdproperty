@@ -1,70 +1,77 @@
-# Getting Started with Create React App
+# Real Estate Management System 🏡
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A Modern Real Estate Management Platform with Sleek UI & Powerful Property Analytics
 
-## Available Scripts
+![Real Estate](https://github.com/user-attachments/assets/9f5b2261-2a21-4c0e-9498-d8b6a1be8<img width="347" height="486" alt="git" src="https://github.com/user-attachments/assets/ce685ffd-b6e0-41ec-bbd7-edc250894aa1" />
+f72)
 
-In the project directory, you can run:
+## Features ✨
 
-### `npm start`
+### Property Management
+- **List & Edit Properties**: Add, update, or remove property listings  
+- **Rich Media Uploads**: Support for multiple images per property  
+- **Detailed Listings**:  
+  - Title, description, price, location  
+  - Property type (apartment, house, land, etc.)  
+  - Bedrooms, bathrooms, area (sq ft), year built  
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### User System
+- **Role-Based Access**:  
+  - Admin: Full system control  
+  - Agents/Landlords: Manage their own properties  
+  - Users: Browse and save favorites  
+- **JWT Authentication**: Secure login/logout with token validation  
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Search & Filtering
+- **Location-Based**: Filter by city/neighborhood  
+- **Advanced Filters**: Price range, bedrooms, property type  
+- **Featured Listings**: Highlight premium properties  
 
-### `npm test`
+### Interactive UI
+- **Dynamic Modals**: Smooth forms for adding/editing properties  
+- **Responsive Design**: Works on desktop, tablet, and mobile  
+- **Map Integration**: Embedded Google Maps links for locations  
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Amenities System
+- **Custom Amenities**: Add schools, hospitals, etc. with distances  
+- **Icons & Labels**: Visual indicators for nearby facilities  
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Technologies Used 💻
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Frontend
+- **React.js**: Component-based UI  
+- **React-Bootstrap**: Responsive layouts/modals  
+- **Axios**: API requests with interceptors  
+- **Context API**: State management (auth, modals)  
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Backend
+- **PHP**: RESTful API endpoints  
+- **MySQL**: Relational database for properties/users  
+- **JWT**: Secure authentication  
 
-### `npm run eject`
+### Hosting/DevOps
+- **Environment Variables**: Configurable API endpoints  
+- **File Uploads**: Local storage with dynamic paths  
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## How to Use 🚀
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### For Admins/Agents
+1. Log in via `/login`  
+2. Click **"List Property"** to add new listings  
+3. Edit existing properties via the dashboard  
+4. Manage amenities/media from property details  
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### For Visitors
+1. Browse properties on the homepage  
+2. Use filters to narrow searches  
+3. View maps/amenities on detail pages  
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## License 📄
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+MIT © [Takiul Hasan](https://github.com/kmt-dev80)

@@ -33,7 +33,7 @@ function Home() {
         setLoading(true);
         
         // Fetch all properties
-        const response = await axios.get('http://localhost/api/properties/get_property.php');
+        const response = await axios.get('http://localhost/api/properties/get_property.php?view_mode=public');
         
         if (response.data.success) {
           const transformedProperties = response.data.properties.map(property => {
