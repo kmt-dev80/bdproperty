@@ -55,7 +55,7 @@ function Properties() {
         // Add sort parameter
         params.append('sort', sortOption);
         
-        const response = await axios.get(`http://localhost/api/properties/get_property.php?${params.toString()}`);
+        const response = await axios.get(`http://localhost/api/properties/get_property.php?view_mode=public${params.toString()}`);
         
         if (response.data.success) {
           
@@ -117,7 +117,7 @@ function Properties() {
   const locations = [...new Set(properties.map(property => property.location))];
   
   // Function to handle image loading errors
-  const handleImageError = (e, propertyId) => {
+  const handleImageError = (e) => {
     e.target.src = 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   };
 

@@ -105,7 +105,7 @@ const ModalContainer = () => {
         features: '',
         featured: false,
         map_link: '',
-        images: []
+        images: [],
       });
 
       setAmenities([
@@ -181,7 +181,8 @@ const ModalContainer = () => {
       formData.append('description', propertyForm.description);
       formData.append('features', propertyForm.features || '');
       formData.append('featured', propertyForm.featured ? '1' : '0');
-      formData.append('map_link', propertyForm.map_link || ''); // Added map_link field
+      formData.append('map_link', propertyForm.map_link || '');
+      formData.append('status', 'pending');
       
       // Add property ID if in edit mode
       if (isEditMode) {
@@ -345,9 +346,9 @@ const ModalContainer = () => {
             
             <div className="col-md-6">
               <Form.Group controlId="propertyPrice">
-                <Form.Label className="fw-medium">Monthly Rent ($)</Form.Label>
+                <Form.Label className="fw-medium">Monthly Rent (Tk.)</Form.Label>
                 <InputGroup>
-                  <InputGroup.Text>$</InputGroup.Text>
+                  <InputGroup.Text>Tk.</InputGroup.Text>
                   <Form.Control 
                     type="number" 
                     name="price"

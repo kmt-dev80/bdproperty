@@ -7,13 +7,12 @@ import { useAuth } from '../AuthContext';
 const EditProperty = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { get, uploadFile } = useAuth();
+  const { get, uploadFile} = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
   const [propertyForm, setPropertyForm] = useState({
     title: '',
     type: '',
@@ -67,8 +66,8 @@ const EditProperty = () => {
           features: propertyData.features || '',
           featured: propertyData.featured || false,
           map_link: propertyData.map_link || '',
-          status: propertyData.status || 'available'
-        });
+          status: propertyData.status || 'pending'
+        });     
         
         // Load amenities if they exist
         if (propertyData.amenities && Array.isArray(propertyData.amenities) && propertyData.amenities.length > 0) {
@@ -170,10 +169,10 @@ const EditProperty = () => {
       if (response.success) {
         setSuccess('Property updated successfully!');
         
-        // Redirect to properties page after a short delay
-        // setTimeout(() => {
-        //   navigate('/admin/properties');
-        // }, 2000);
+        //Redirect to properties page after a short delay
+        setTimeout(() => {
+          navigate('/admin/properties');
+        }, 2000);
       } else {
         setError(response.message || 'Failed to update property');
       }
@@ -184,6 +183,8 @@ const EditProperty = () => {
       setIsSubmitting(false);
     }
   };
+
+
   
   if (loading) {
     return <div className="text-center py-5">Loading property...</div>;
@@ -337,6 +338,7 @@ const EditProperty = () => {
                     required
                   >
                     <option value="available">Available</option>
+                    <option value="pending">Pending</option>
                     <option value="rented">Rented</option>
                     <option value="maintenance">Maintenance</option>
                   </Form.Select>
@@ -456,7 +458,7 @@ const EditProperty = () => {
                     <small className="text-muted d-block mt-2">Upload high-quality images (max 10MB each)</small>
                   </div>
                 </Form.Group>
-              </div>
+              </div>    
               
               <div className="col-12 mt-4">
                 <div className="d-flex gap-2">

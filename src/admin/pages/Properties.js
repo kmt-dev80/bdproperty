@@ -19,7 +19,7 @@ const Properties = () => {
   const fetchProperties = async () => {
     try {
       // Use get method from AuthContext
-      const response = await get('/properties/get_property.php');
+      const response = await get('/properties/get_property.php?view_mode');
       
       if (response.success) {
         setProperties(response.properties);
@@ -61,6 +61,19 @@ const Properties = () => {
     
     return matchesSearch && matchesType && matchesStatus;
   });
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-warning';
+      case 'available':
+        return 'bg-success';
+      case 'rented':
+        return 'bg-info';
+      default:
+        return 'bg-secondary';
+    }
+  };
 
   if (loading) {
     return <div className="text-center py-5">Loading properties...</div>;
@@ -106,6 +119,7 @@ const Properties = () => {
             <Col md={3}>
               <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="all">All Status</option>
+                <option value="pending">Pending</option>
                 <option value="available">Available</option>
                 <option value="rented">Rented</option>
                 <option value="maintenance">Maintenance</option>
@@ -142,7 +156,7 @@ const Properties = () => {
                     <td>${property.price}</td>
                     <td>{property.location}</td>
                     <td>
-                      <span className={`badge bg-${property.status === 'available' ? 'success' : property.status === 'rented' ? 'primary' : 'warning'}`}>
+                      <span className={`badge ${getStatusBadgeClass(property.status)}`}>
                         {property.status}
                       </span>
                     </td>

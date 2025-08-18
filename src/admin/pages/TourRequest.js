@@ -143,7 +143,9 @@ const TourRequests = () => {
                 <tr>
                   <th>ID</th>
                   <th>Property</th>
+                  <th>Message</th>
                   <th>Requester</th>
+                  <th>Contact_No</th>
                   <th>Date & Time</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -153,11 +155,16 @@ const TourRequests = () => {
                 {tourRequests.map((request) => (
                   <tr key={request.id}>
                     <td>{request.id}</td>
-                    <td>{request.property_title}</td>
+                    <td>
+                      <div>{request.property_title}</div>
+                      <div>Property_id = {request.property_id}</div>
+                    </td>
+                    <td>{request.message}</td>
                     <td>
                       <div>{request.user_name}</div>
                       <small className="text-muted">{request.user_email}</small>
                     </td>
+                    <td>{request.phone}</td>
                     <td>
                       <div>{request.date}</div>
                       <small className="text-muted">{request.time}</small>
