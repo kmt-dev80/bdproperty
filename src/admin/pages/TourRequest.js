@@ -116,7 +116,7 @@ const TourRequests = () => {
         <h2>Tour Requests</h2>
         <div className="d-flex align-items-center">
           <select 
-            className="form-select me-2" 
+            className="form-select-sm me-2" 
             style={{ width: 'auto' }}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -177,7 +177,7 @@ const TourRequests = () => {
                     <td>
                       <div className="btn-group">
                         <select 
-                          className="form-select form-select-sm me-2" 
+                          className="form-select-sm me-2" 
                           style={{ width: 'auto' }}
                           value={request.status}
                           onChange={(e) => updateStatus(request.id, e.target.value)}

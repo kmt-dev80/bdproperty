@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaBars, FaBell, FaSearch, FaUserCircle } from 'react-icons/fa';
-import { useAuth } from '../AuthContext'; // Adjust path as needed
+import { useAuth } from '../AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const AdminHeader = ({ toggleSidebar, user }) => {
@@ -10,13 +10,13 @@ const AdminHeader = ({ toggleSidebar, user }) => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/admin/login'); // Redirect to admin login after logout
+      navigate('/admin/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
   return (
-    <header className="admin-header bg-white shadow-sm">
+    <header className="admin-header bg-light shadow-sm">
       <div className="container-fluid">
         <div className="d-flex justify-content-between align-items-center py-3">
           <div className="d-flex align-items-center">

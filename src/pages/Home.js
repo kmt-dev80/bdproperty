@@ -143,7 +143,7 @@ function Home() {
     }
     
     // Navigate to properties page with search parameters
-    window.location.href = `/properties?৳{params.toString()}`;
+    window.location.href = `/properties?${params.toString()}`;
   };
   
   // Filter properties based on both quick filter and search params
@@ -247,11 +247,11 @@ function Home() {
   // Function to get the appropriate badge for a property
   const getPropertyBadge = (property) => {
     if (property.featured) {
-      return { text: 'Featured', className: 'bg-danger' };
+      return { text: 'Featured', className: 'bg-primary' };
     }
     
     if (property.type === 'house' || property.type === 'land') {
-      return { text: 'Sale', className: 'bg-primary' };
+      return { text: 'Sale', className: 'bg-danger' };
     }
     
     return { text: 'New', className: 'bg-success' };

@@ -90,8 +90,7 @@ const Dashboard = () => {
                 <FaChartLine size={24} />
               </div>
               <div>
-                <h6 className="text-muted mb-1">Revenue</h6>
-                <h4 className="mb-0">$0</h4>
+                <h6 className="text-muted mb-1">Achievement</h6>
               </div>
             </Card.Body>
           </Card>

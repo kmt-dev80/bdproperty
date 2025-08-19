@@ -55,7 +55,7 @@ function Properties() {
         // Add sort parameter
         params.append('sort', sortOption);
         
-        const response = await axios.get(`http://localhost/api/properties/get_property.php?view_mode=public${params.toString()}`);
+        const response = await axios.get(`http://localhost/api/properties/get_property.php?view_mode=public&${params.toString()}`);
         
         if (response.data.success) {
           
@@ -125,11 +125,11 @@ function Properties() {
   // Function to get the appropriate badge for a property
   const getPropertyBadge = (property) => {
     if (property.featured) {
-      return { text: 'Featured', className: 'bg-danger' };
+      return { text: 'Featured', className: 'bg-primary' };
     }
     
     if (property.type === 'house' || property.type === 'land') {
-      return { text: 'Sale', className: 'bg-primary' };
+      return { text: 'Sale', className: 'bg-danger' };
     }
     
     return { text: 'New', className: 'bg-success' };

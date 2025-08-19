@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  FaTachometerAlt, FaHome, FaUsers, FaSignOutAlt, FaPlus 
+  FaTachometerAlt, FaHome, FaUsers, FaSignOutAlt, FaPlus, FaEnvelope 
 } from 'react-icons/fa';
 import { useAuth } from '../AuthContext'; // Adjust path as needed
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +21,8 @@ const AdminSidebar = ({ isOpen, toggleSidebar, user }) => {
   return (
     <div className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <h3 className="text-white">Luxury Homes</h3>
+        <h3 className="text-light">BDProperties</h3>
+        
         <button className="btn btn-sm btn-light d-md-none" onClick={toggleSidebar}>
           <i className="fas fa-times"></i>
         </button>
@@ -72,7 +73,7 @@ const AdminSidebar = ({ isOpen, toggleSidebar, user }) => {
           )}
           <li className="nav-item">
             <NavLink to="/admin/tour-request" className="nav-link">
-              <FaPlus className="me-2" />
+              <FaEnvelope className="me-2" />
               See Request
             </NavLink>
           </li>

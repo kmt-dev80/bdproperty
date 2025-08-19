@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
 import { useModal } from '../context/ModalContext';
-import { useAuth } from '../admin/AuthContext'; // Import useAuth
+import { useAuth } from '../admin/AuthContext';
+
 function PropertyDetails() {
   const { id } = useParams();
   const { openListPropertyModal } = useModal();
@@ -329,7 +330,11 @@ function PropertyDetails() {
               </p>
               <div className="d-flex align-items-center flex-wrap">
                 <div className="me-4 mb-3">
-                  <span className="badge bg-warning text-dark fs-6 px-3 py-2">For Rent</span>
+                  {showPrice ? (
+                  <span className="badge bg-info text-dark fs-6 px-3 py-2">For Rent</span>
+                  ) : (
+                    <span className="badge bg-warning text-dark fs-6 px-3 py-2">For Sale</span>
+                  )}
                 </div>
                 <div className="d-flex align-items-center mb-3">
                   <div className="text-warning me-3">
